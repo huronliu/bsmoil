@@ -1,0 +1,18 @@
+{
+  "android": {
+    "debug": {
+      "keystore": "./android.keystore",
+      "storePassword": "1qaz!QAZ",
+      "alias": "bsmkey",
+      "password": "1qaz!QAZ",
+      "keystoreType": ""
+    },
+    "release": {
+      "keystore": "./android.keystore",
+      "storePassword": "1qaz!QAZ",
+      "alias": "bsmkey",
+      "password": "1qaz!QAZ",
+      "keystoreType": ""
+    }
+  }
+}
