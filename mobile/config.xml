@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.fly.basestation.monitor" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>BaseStationMonitor</name>
+<widget id="com.fly.basestation.monitor" version="1.0.0" android-packageName="com.fly.basestation.monitor" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name short="基站">基站监控</name>
     <description>
         本APP用来检测基站的环境数据，包括倾斜角度，温湿度，消防火情等，并推送报警消息
     </description>
-    <author email="support@fly.com" href="http://www.fly.com">
+    <author email="support@fly.com" href="http://www.fly1992.com/">
         Leo Liang
     </author>
     <content src="index.html" />
@@ -15,8 +15,19 @@
     <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
+    <icon src="/res/icon/android/cell-tower-36.png" />
     <platform name="android">
         <allow-intent href="market:*" />
+        <icon src="res/android/cell-tower-36.png" density="ldpi" />
+        <icon src="res/android/cell-tower-48.png" density="mdpi" />
+        <icon src="res/android/cell-tower-72.png" density="hdpi" />
+        <icon src="res/android/cell-tower-96.png" density="xhdpi" />
+        <preference name="android-targetSdkVersion" value="27" />
+        <preference name="android-minSdkVersion" value="23" />
+        <preference name="KeepRunning" value="true" />
+        <preference name="LoadUrlTimeoutValue" value="30000" />
+        <preference name="LogLevel" value="DEBUG" />
+        <preference name="AndroidLaunchMode" value="singleTop" />
     </platform>
     <platform name="ios">
         <allow-intent href="itms:*" />
