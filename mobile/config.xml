@@ -28,10 +28,12 @@
         <preference name="LoadUrlTimeoutValue" value="30000" />
         <preference name="LogLevel" value="DEBUG" />
         <preference name="AndroidLaunchMode" value="singleTop" />
+        <preference name="AppendUserAgent" value="CordovaAndroid" />
     </platform>
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
+        <preference name="AppendUserAgent" value="CordovaiOS" />
     </platform>
     <plugin name="cordova-plugin-whitelist" spec="1" />
     <engine name="ios" spec="^4.5.5" />
