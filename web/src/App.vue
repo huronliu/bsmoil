@@ -16,7 +16,7 @@
     <v-snackbar v-model="snackbar.display" :timeout="snackbar.timeout">
       {{snackbar.text}}
       <v-btn color="primary" flat @click="snackbar.display = false">
-        {{this.$t('common.close')}}
+        关闭
       </v-btn>
     </v-snackbar>
     <!--this is tricky try fix for bottom-nav display ugly on iphone X  -->
@@ -40,12 +40,10 @@ export default {
         timeout: 5000
       },
       allNavs: [
-        { title: "Floor", to: "floor", icon: "dehaze", roleFlag: 1 },
-        { title: "Table", to: "table", icon: "casino", roleFlag: 1 },
-        { title: "Enroll", to: "enroll", icon: "person_add", roleFlag: 1 },
-        { title: "Search", to: "me", icon: "search", roleFlag: 1 },
-        { title: "Config", to: "admin/config", icon: "settings", roleFlag: 2 },
-        { title: "Me", to: "me", icon: "account_box", roleFlag: 3 }
+        { title: "基站", to: "stations", icon: "list_alt", roleFlag: 1 },
+        { title: "报警", to: "alerts", icon: "notification_important", roleFlag: 1 },
+        { title: "配置", to: "admin/config", icon: "settings", roleFlag: 2 },
+        { title: "我", to: "me", icon: "account_box", roleFlag: 3 }
       ]
     };
   },
