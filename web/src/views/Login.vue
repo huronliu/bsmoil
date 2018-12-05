@@ -118,7 +118,7 @@ export default {
     login: function() {
       this.errorMsg = null;
       if (!this.serverUrl) {
-        this.errorMsg = '服务器地址未设置，请先点击设置按钮设置服务器地址';        
+        this.errorMsg = "服务器地址未设置，请先点击设置按钮设置服务器地址";
         return;
       }
       if (this.$refs.login.validate()) {
@@ -151,8 +151,9 @@ export default {
         //       this.$emit("login-failed", error.message, error.message);
         //     }
         //   });
-        this.$store.commit('setSession', {
-          token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBpZCI6NCwiaWQiOjIsImF1dGhhZG1pbiI6bnVsbCwiYWRtaW4iOm51bGwsImxvZ2lubmFtZSI6IkxFTyIsImZpcnN0bmFtZSI6IkxlbyIsImxhc3RuYW1lIjoiTGlhbmciLCJleHBtaW5zIjoxNDQwLCJpYXQiOjE1NDM5MTQ3MjYsImV4cCI6MTU0NDAwMTEyNn0.aQpyERs2fatmtfWFYFgkXkNiF8IRvgdbWdBR2VOixME',
+        this.$store.commit("setSession", {
+          token:
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhcHBpZCI6NCwiaWQiOjIsImF1dGhhZG1pbiI6bnVsbCwiYWRtaW4iOm51bGwsImxvZ2lubmFtZSI6IkxFTyIsImZpcnN0bmFtZSI6IkxlbyIsImxhc3RuYW1lIjoiTGlhbmciLCJleHBtaW5zIjoxNDQwLCJpYXQiOjE1NDM5MTQ3MjYsImV4cCI6MTU0NDAwMTEyNn0.aQpyERs2fatmtfWFYFgkXkNiF8IRvgdbWdBR2VOixME",
           user: {
             admin: false,
             appIconUrl: "http://localhost:8699/assets/images/svg/appid4.svg",
@@ -163,8 +164,8 @@ export default {
             roles: [],
             userId: 2
           }
-        })
-        this.$router.replace('/');
+        });
+        this.$router.replace("/");
       } else {
         this.errorMsg = "用户名或者密码错误";
       }
@@ -213,7 +214,7 @@ export default {
       this.settingsMode = true;
     },
     cancelSetting: function() {
-      this.settingsMode = false;      
+      this.settingsMode = false;
     },
     saveSetting: function() {
       if (this.$refs.settings.validate()) {
@@ -283,7 +284,7 @@ export default {
     },
     loadBrowserSettings: function() {
       this.serverUrl =
-        window.localStorage.getItem(UrlStorageKey) || window.location.origin;      
+        window.localStorage.getItem(UrlStorageKey) || window.location.origin;
       this.debugMode = window.localStorage.getItem(DebugKey) === "true";
     }
   },

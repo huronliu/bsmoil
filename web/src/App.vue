@@ -41,7 +41,12 @@ export default {
       },
       allNavs: [
         { title: "基站", to: "stations", icon: "list_alt", roleFlag: 1 },
-        { title: "报警", to: "alerts", icon: "notification_important", roleFlag: 1 },
+        {
+          title: "报警",
+          to: "alerts",
+          icon: "notification_important",
+          roleFlag: 1
+        },
         { title: "配置", to: "admin/config", icon: "settings", roleFlag: 2 },
         { title: "我", to: "me", icon: "account_box", roleFlag: 3 }
       ]

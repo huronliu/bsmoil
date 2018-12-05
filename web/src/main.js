@@ -62,16 +62,20 @@ Vue.config.productionTip = false;
 
 axios.interceptors.response.use(
   response => response,
-  error => {    
+  error => {
     if (error && error.response && error.response.status) {
       if (error.response.status === 401) {
-        console.error("You are not authenticated", JSON.stringify(error.response));
+        console.error(
+          "You are not authenticated",
+          JSON.stringify(error.response)
+        );
         if (store.state.session.isActive()) {
-          // common.logout()
+          console.log("should go to log out");
+          //common.logout()
           // TODO:: should we logout the user and redirect to the /login page???
         }
       } else if (error.response.status === 403) {
-        console.error('You are not authorized', JSON.stringify(error.response));
+        console.error("You are not authorized", JSON.stringify(error.response));
       }
     }
     return Promise.reject(error);
@@ -96,7 +100,6 @@ router.beforeEach((to, from, next) => {
     store.commit("setSession", { user, token });
     store.commit("reloadServerSetting", {
       hostUrl: hostUrl,
-      language: language,
       debugMode: debugMode
     });
     globalConfig.clear();

@@ -36,7 +36,7 @@
         <preference name="AppendUserAgent" value="CordovaiOS" />
     </platform>
     <plugin name="cordova-plugin-whitelist" spec="1" />
+    <plugin name="cordova-plugin-nativestorage" spec="^2.3.2" />
     <engine name="ios" spec="^4.5.5" />
     <engine name="android" spec="^7.1.4" />
-    <plugin name="cordova-plugin-nativestorage" spec="^2.3.2" />
 </widget>

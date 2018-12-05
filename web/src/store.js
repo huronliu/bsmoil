@@ -1,7 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import decode from "jwt-decode";
-import i18n from "@/i18n";
 import axios from "axios";
 
 Vue.use(Vuex);
@@ -94,41 +93,8 @@ Object.defineProperties(ServerConfig.prototype, {
     }
   }
 });
-Object.defineProperties(ServerConfig.prototype, {
-  language: {
-    get: function() {
-      return this._language;
-    },
-    set: function(language) {
-      var localeChanged = false;
-      const oldLocale = i18n.locale;
-      if (language) {
-        this._language = language;
-        if (i18n.locale !== language.value) {
-          i18n.locale = language.value;
-          localeChanged = true;
-        }
-      } else {
-        if (i18n.locale == null) {
-          i18n.locale = "en_US";
-          localeChanged = true;
-        }
-      }
-
-      if (localeChanged && Vue.prototype.$bus) {
-        Vue.prototype.$bus.$emit("locale-changed", {
-          newValue: i18n.locale,
-          oldValue: oldLocale
-        });
-      }
-    }
-  }
-});
 ServerConfig.prototype.getHostUrl = function() {
   return this.hostUrl || window.location.origin;
-};
-ServerConfig.prototype.getLanguage = function() {
-  return this.language;
 };
 ServerConfig.prototype.isDebugMode = function() {
   return this.debugMode;
@@ -138,18 +104,11 @@ ServerConfig.prototype.reload = function(data) {
     if (data.hostUrl) {
       this.w.localStorage.setItem("HostUrl", data.hostUrl);
     }
-    if (data.language) {
-      this.w.localStorage.setItem("Language", JSON.stringify(data.language));
-    }
     if (data.debugMode) {
       this.w.localStorage.setItem("DebugMode", data.debugMode);
     }
   }
   this.hostUrl = this.w.localStorage.getItem("HostUrl");
-  this.language = getObj(this.w.localStorage, "Language", {
-    name: "English",
-    value: "en_US"
-  });
   this.debugMode = getBoolean(this.w.localStorage, "DebugMode", false);
   return this;
 };

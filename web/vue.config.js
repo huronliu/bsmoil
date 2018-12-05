@@ -1,5 +1,5 @@
 module.exports = {
-  outputDir: "../server/www",
+  outputDir: "../mobile/www",
   devServer: {
     port: 3000,
     proxy: {
