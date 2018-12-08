@@ -3,3 +3,5 @@ mobile/platforms/android/
 mobile/plugins/
 mobile/platforms/
 mobile/www/
+*.bin
+*.bin

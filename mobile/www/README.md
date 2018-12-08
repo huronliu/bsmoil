@@ -1,1 +1,0 @@
-This folder is for holding the static Web content of the App

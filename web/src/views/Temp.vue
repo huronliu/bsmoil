@@ -1,20 +1,15 @@
 <template>
   <v-container fluid>
-    <mobile-header title="Player on Table">
+    <mobile-header title="Temp">
       <template slot="left">
         <v-toolbar-side-icon></v-toolbar-side-icon>
-      </template>
-      <template>
-        <v-btn icon v-on:click="scan()">
-          <v-icon>crop_free</v-icon>
-        </v-btn>
       </template>
     </mobile-header>
     <v-slide-y-transition mode="out-in">
       <v-layout column align-center>
         
         <blockquote>
-          &#8220;First, solve the problem. Then, write the code.&#8221;
+          &#8220;This page is in construction ...&#8221;
           <footer>
             <small>
               <em>&mdash;{{name}}</em>
@@ -28,16 +23,13 @@
 
 <script>
 export default {
-  name: "PlayerOnTable",
+  name: "Temp",
   data() {
     return {
-      name: "John Johnson"
+      name: "L.Y"
     };
   },
   methods: {
-    scan() {
-      this.$emit("logout");
-    }
   }
 };
 </script>

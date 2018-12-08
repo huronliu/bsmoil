@@ -9,6 +9,9 @@
   "installed_plugins": {
     "cordova-plugin-whitelist": {
       "PACKAGE_NAME": "com.fly.basestation.monitor"
+    },
+    "cordova-plugin-nativestorage": {
+      "PACKAGE_NAME": "com.fly.basestation.monitor"
     }
   },
   "dependent_plugins": {}

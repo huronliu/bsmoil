@@ -1,8 +1,10 @@
-import Vue from "vue";
+import Vue from 'vue'
+import Vuetify from 'vuetify'
 import "@/stylus/main.styl";
-import Vuetify from "vuetify";
-// TODO:: We should not import all the vuetify components by default;
+//import 'vuetify/src/stylus/app.styl'
+
 Vue.use(Vuetify, {
+  iconfont: 'md',
   theme: {
     primary: "#1976D2",
     secondary: "#424242",
@@ -12,4 +14,4 @@ Vue.use(Vuetify, {
     success: "#4CAF50",
     warning: "#FFC107"
   }
-});
+})

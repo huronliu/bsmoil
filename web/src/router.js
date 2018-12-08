@@ -1,11 +1,7 @@
 import Vue from "vue";
 import Router from "vue-router";
-import Login from "@/views/Login.vue";
-import Stations from "@/views/Stations.vue";
-import StationDetail from "@/views/StationDetail.vue";
-import Alerts from "@/views/Alerts.vue";
-import Config from "@/views/Config.vue";
-import More from "@/views/More.vue";
+import Stations from "./views/Stations";
+import Temp from "./views/Temp";
 
 Vue.use(Router);
 
@@ -15,7 +11,7 @@ export default new Router({
     {
       path: "/login",
       name: "login",
-      component: Login,
+      component: Temp,
       meta: {
         footer: false
       }
@@ -41,7 +37,7 @@ export default new Router({
     {
       path: "/stationdetail",
       name: "stationDetail",
-      component: StationDetail,
+      component: Temp,
       meta: {
         requireAuth: true,
         roles: []
@@ -51,7 +47,7 @@ export default new Router({
     {
       path: "/alerts",
       name: "alerts",
-      component: Alerts,
+      component: Temp,
       meta: {
         requireAuth: true,
         roles: []
@@ -60,7 +56,7 @@ export default new Router({
     {
       path: "/admin",
       name: "admin",
-      component: Config,
+      component: Temp,
       meta: {
         requireAuth: true,
         roles: []
@@ -69,7 +65,7 @@ export default new Router({
     {
       path: "/admin/config",
       name: "admin/config",
-      component: Config,
+      component: Temp,
       meta: {
         requireAuth: true,
         roles: []
@@ -78,7 +74,7 @@ export default new Router({
     {
       path: "/me",
       name: "me",
-      component: More,
+      component: Temp,
       meta: {
         requireAuth: true,
         roles: []

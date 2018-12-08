@@ -46,7 +46,7 @@
         </v-menu>
         <v-dialog v-model="filterMenu" persistent max-width="280px">
           <v-btn slot="activator" icon style="font-size:18px">
-            <i class="cus-icon filter">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</i>
+            <v-icon light>filter_list</v-icon>
           </v-btn>
           <v-card class="elevation-20">           
             
@@ -126,7 +126,7 @@ import _ from "lodash";
 import { TMap } from "../modules/tmap";
 
 export default {
-  name: "PlayerOnFloor",
+  name: "Stations",
   data() {
     return {
       pageTitle: "基站",
@@ -277,7 +277,7 @@ export default {
     padding-right: 0;
   }
 }
-#players-toolbar >>> .v-toolbar__content {
+#stations-toolbar >>> .v-toolbar__content {
   padding: 0px 8px 0px 8px !important;
 }
 .total_head {
@@ -322,28 +322,7 @@ i.item_icon {
   left: 0;
   background-repeat: no-repeat;
 }
-.slot::before {
-  background-image: url(/assets/slot.png);
-  height: 14px;
-  width: 14px;
-  background-size: 14px 14px;
-}
-.slot {
-  margin: 0 2px;
-}
-.uncarded::before {
-  background-image: url(/assets/uncarded.png);
-  opacity: 0.54;
-  background-size: 17px 17px;
-  height: 17px;
-  width: 17px;
-}
-.filter::before {
-  background-image: url(/assets/filter.png);
-  background-size: 24px 24px;
-  height: 24px;
-  width: 24px;
-}
+
 #filter_toolbar_dialog {
   max-width: 290px;
 }

@@ -32,7 +32,7 @@ export default {
   name: "App",
   data() {
     return {
-      title: "Mobile Host",
+      title: "基站监控",
       loading: false,
       snackbar: {
         display: false,
@@ -60,37 +60,38 @@ export default {
     navs: {
       get() {
         var result = [];
-        var user = this.$store.state.session.user;
-        if (!user) return result;
+        //var user = this.$store.state.session.user;
+        //if (!user) return result;
         this.allNavs.forEach(nav => {
-          if (user.admin) {
-            if (nav.roleFlag & 2) {
-              result.push(nav);
-            }
-          } else {
-            if (nav.roleFlag & 1) {
-              result.push(nav);
-            }
-          }
+          // if (user.admin) {
+          //   if (nav.roleFlag & 2) {
+          //     result.push(nav);
+          //   }
+          // } else {
+          //   if (nav.roleFlag & 1) {
+          //     result.push(nav);
+          //   }
+          // }
+          result.push(nav);
         });
         return result;
       }
     }
   },
   created: function() {
-    this.$bus.$on("show-loading", () => {
-      this.loading = true;
-    });
-    this.$bus.$on("hide-loading", () => {
-      this.loading = false;
-    });
-    this.$bus.$on("toast", ({ text, timeout }) => {
-      this.snackbar = {
-        text: text,
-        timeout: timeout,
-        display: true
-      };
-    });
+    // this.$bus.$on("show-loading", () => {
+    //   this.loading = true;
+    // });
+    // this.$bus.$on("hide-loading", () => {
+    //   this.loading = false;
+    // });
+    // this.$bus.$on("toast", ({ text, timeout }) => {
+    //   this.snackbar = {
+    //     text: text,
+    //     timeout: timeout,
+    //     display: true
+    //   };
+    // });
   },
   mounted: function() {
     if (window.cordova) {
