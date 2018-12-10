@@ -228,30 +228,96 @@ export default {
       this.filterMenu = false;
     },
     initMap() {
-      TMap("CFDBZ-2RSRU-GBOVG-4HHQH-WKXQ2-G7BVR").then(qq => {
-        console.log("start init qq map");
-        let myLatlng = new qq.maps.LatLng(39.916527, 116.397128);
-        let myOptions = {
-          zoom: 8, //设置地图缩放级别
-          center: myLatlng, //设置中心点样式
-          mapTypeId: qq.maps.MapTypeId.ROADMAP, //设置地图样式详情参见MapType,
-          mapStyleId: "style1"
-        };
-        let map = new qq.maps.Map(
-          document.getElementById("mapContainer"),
-          myOptions
-        );
-        qq.maps.event.addListener(map, "click", function(event) {
-          console.log(
-            "您点击的位置为: [" +
-              event.latLng.getLat() +
-              ", " +
-              event.latLng.getLng() +
-              "]"
-          );
-        });
-        console.log("qq map initialized");
+      var buildings = new AMap.Buildings({
+          'zooms':[16,18],
+          'zIndex':10,
+          'heightFactor':2
       });
+      var map = new AMap.Map('mapContainer', {
+          zoom:11,
+          center: [116.397428, 39.90923],
+          layers: [
+              //new AMap.TileLayer.Satellite(),
+              //buildings
+          ],
+          viewMode:'2D'
+      });
+      var marker = new AMap.Marker({
+          position:[116.39, 39.9]//位置
+      })
+      map.add(marker);
+      marker.on('click',(e) => {
+        var infoWindow = new AMap.InfoWindow({
+            isCustom: true,
+            content:'<div>信息窗体</div>',
+            offset: new AMap.Pixel(16, -45)
+        });
+        infoWindow.open(map, e.target.getPosition());
+      });
+      
+      AMap.plugin('AMap.Geolocation', function() {
+        var geolocation = new AMap.Geolocation({
+          enableHighAccuracy: true,
+          timeout: 10000,
+          buttonOffset: new AMap.Pixel(10, 170),
+          zoomToAccuracy: true,     
+          buttonPosition: 'RB'
+        });
+
+        map.addControl(geolocation);
+        geolocation.getCurrentPosition(function(status,result){
+            if(status=='complete'){
+                console.log(JSON.stringify(result));
+            }else{
+                console.error(JSON.stringify(result));
+            }
+        });
+      });
+
+    //   TMap("CFDBZ-2RSRU-GBOVG-4HHQH-WKXQ2-G7BVR").then(qq => {
+    //     console.log("start init qq map");
+    //     let myLatlng = new qq.maps.LatLng(39.916527, 116.397128);
+    //     let myOptions = {
+    //       zoom: 12, //设置地图缩放级别
+    //       center: myLatlng, //设置中心点样式
+    //       mapTypeId: qq.maps.MapTypeId.ROADMAP, //设置地图样式详情参见MapType,
+    //       mapStyleId: "style1"
+    //     };
+    //     let map = new qq.maps.Map(
+    //       document.getElementById("mapContainer"),
+    //       myOptions
+    //     );        
+    //     qq.maps.event.addListener(map, "click", function(event) {
+    //       console.log(
+    //         "您点击的位置为: [" +
+    //           event.latLng.getLat() +
+    //           ", " +
+    //           event.latLng.getLng() +
+    //           "]"
+    //       );
+    //     });
+
+    //     var geolocation = new qq.maps.Geolocation("CFDBZ-2RSRU-GBOVG-4HHQH-WKXQ2-G7BVR", "BSM");
+    //     geolocation.getLocation(position => {
+    //       let pos = new qq.maps.LatLng(position.lat, position.lng);
+    //       map.panTo(pos);
+    //         var marker = new qq.maps.Marker({
+    //             position: pos,
+    //             animation: qq.maps.MarkerAnimation.BOUNCE,
+    //             map: map
+    //         });
+
+    //         var citylocation = new qq.maps.CityService({
+    //             map : map,
+    //             complete : function(results){
+    //                 console.log(9999,results)
+    //             }
+    //         });
+    //     }, (err) => {
+    //       console.error('定位失败', err);
+    //     }, {timeout: 8000});
+                      
+    // });
     }
   },
   mounted: function() {
@@ -259,7 +325,7 @@ export default {
   },
   beforeMount: function() {},
   activated: function() {
-    this.initMap();
+    //this.initMap();
     this.loadStations();
   },
   deactivated: function() {}
