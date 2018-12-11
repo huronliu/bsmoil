@@ -10,10 +10,50 @@
 
     <v-card >
       <v-toolbar id="stations-toolbar" dense>
-        <v-text-field class="ml-2" clearable v-model="searchKey"></v-text-field>
-        <v-btn icon v-on:click="search()">
-          <v-icon>search</v-icon>
-        </v-btn>
+        <v-text-field id="searchKey" class="ml-2" clearable v-model="searchKey"></v-text-field>        
+        <v-dialog v-model="cityDialog" scrollable persistent max-width="85vw">
+          <v-btn slot="activator" icon style="font-size:18px" v-on:click="selectCity()">
+            <v-icon light>location_city</v-icon>
+          </v-btn>          
+          <v-card class="elevation-20 px-2">
+            <v-card-text style="">
+              <v-list two-line subheader dense>
+                <v-subheader>省</v-subheader>
+                <v-list-tile class="filter_toolbar_item">
+                  <v-list-tile-action>
+                    <v-select
+                      :items="provinces"
+                      item-text="name"
+                      item-value="name"
+                      v-model="curProvince"
+                      return-object
+                      v-on:change="changeProvince"
+                    ></v-select>
+                  </v-list-tile-action>
+                </v-list-tile>
+              </v-list>
+              <v-list two-line subheader dense>
+                <v-subheader>市</v-subheader>
+                <v-list-tile class="filter_toolbar_item">
+                  <v-list-tile-action>
+                    <v-select
+                      :items="cities"
+                      item-text="name"
+                      v-model="curCity"
+                    ></v-select>
+                  </v-list-tile-action>
+                </v-list-tile>
+              </v-list>
+            </v-card-text>
+            <v-divider></v-divider>   
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn flat @click="cityDialog = false">取消</v-btn>
+              <v-btn color="primary" flat @click="applyCity()">选择</v-btn>
+            </v-card-actions>
+          </v-card>
+          <v-spacer></v-spacer>
+        </v-dialog>
         <v-divider vertical class="mr-1"></v-divider>        
         <v-menu close-delay="500" bottom left>
           <v-btn slot="activator" icon>
@@ -60,6 +100,7 @@
           </v-card>
           <v-spacer></v-spacer>
         </v-dialog>
+        
       </v-toolbar>
       <v-layout justify-center align-center v-show="displayMode !== 'map'">
         <v-layout v-show="this.stations.length === 0" justify-center>
@@ -124,21 +165,30 @@
 <script>
 import _ from "lodash";
 import { TMap } from "../modules/tmap";
+import allcities from '../config/cities.json';
 
 export default {
   name: "Stations",
   data() {
     return {
-      pageTitle: "基站",
       displayMode: "map",
       searchKey: "",
+      city: '北京',
 
       refreshFlag: true,
       refreshInterval: 15,
       pageSize: 30,
 
       filterMenu: false,
-      stations: []
+      cityDialog: false,
+      stations: [], 
+
+      map: null,
+      map_searchCity: null,
+      provinces: [],
+      cities: [],
+      curProvince: null,
+      curCity: null
     };
   },
   computed: {
@@ -146,17 +196,37 @@ export default {
       get() {
         return true;
       }
+    },
+    pageTitle: {
+      get() {
+        if (this.curCity) {
+          this.city = this.curCity;
+        }
+        return '基站 - ' + this.city;
+      }
     }
   },
   methods: {
-    search() {
-      console.log("search:" + this.searchKey);
+    selectCity() {      
+    },
+    applyCity() {
+
     },
     changeDisplayMode(mode) {
       this.displayMode = mode;
       console.log(`display mode changed to ${this.displayMode}`);
     },
-
+    changeProvince(item) {      
+      if (this.curProvince) {
+        this.map_searchCity.search(this.curProvince, (status, result) => {
+          if (status === 'complete') {
+            this.cities = result.districtList[0].districtList;
+          } else {
+            console.log('search cities status: ' + status);
+          }
+        });
+      }
+    },
     isBlank(val) {
       if (val === null) return true;
 
@@ -233,7 +303,7 @@ export default {
           'zIndex':10,
           'heightFactor':2
       });
-      var map = new AMap.Map('mapContainer', {
+      this.map = new AMap.Map('mapContainer', {
           zoom:11,
           center: [116.397428, 39.90923],
           layers: [
@@ -245,79 +315,63 @@ export default {
       var marker = new AMap.Marker({
           position:[116.39, 39.9]//位置
       })
-      map.add(marker);
+      this.map.add(marker);
       marker.on('click',(e) => {
         var infoWindow = new AMap.InfoWindow({
             isCustom: true,
             content:'<div>信息窗体</div>',
             offset: new AMap.Pixel(16, -45)
         });
-        infoWindow.open(map, e.target.getPosition());
+        infoWindow.open(this.map, e.target.getPosition());
       });
       
-      AMap.plugin('AMap.Geolocation', function() {
-        var geolocation = new AMap.Geolocation({
+      AMap.plugin(['AMap.Geolocation', 'AMap.Autocomplete', 'AMap.DistrictSearch'], () => {
+        //get current location
+        let geolocation = new AMap.Geolocation({
           enableHighAccuracy: true,
           timeout: 10000,
           buttonOffset: new AMap.Pixel(10, 170),
           zoomToAccuracy: true,     
           buttonPosition: 'RB'
         });
-
-        map.addControl(geolocation);
-        geolocation.getCurrentPosition(function(status,result){
+        this.map.addControl(geolocation);
+        geolocation.getCurrentPosition((status,result) => {
             if(status=='complete'){
                 console.log(JSON.stringify(result));
             }else{
                 console.error(JSON.stringify(result));
             }
         });
+
+        //auto-complete
+        let autoOptions = {
+          input: 'searchKey',
+          city: '全国'
+        };
+        let autoComplete= new AMap.Autocomplete(autoOptions);        
+        AMap.event.addListener(autoComplete, 'select', (e) => {
+          console.log(JSON.stringify(e));
+          if (e && e.poi) {
+            this.searchKey = e.poi.name
+            this.map.setZoomAndCenter(15, e.poi.location);
+          }          
+        });
+        AMap.event.addListener(autoComplete, 'complete', (e) => {          
+        });
+        AMap.event.addListener(autoComplete, 'error', (e) => {
+          console.error(`Error when select search result: ${JSON.stringify(e)}`);
+        });
+
+        //search cities
+        this.map_searchCity = new AMap.DistrictSearch({
+          level: 'country',
+          subdistrict: 2
+        });
+
+        //load cities
+        this.provinces = allcities;
+        
       });
-
-    //   TMap("CFDBZ-2RSRU-GBOVG-4HHQH-WKXQ2-G7BVR").then(qq => {
-    //     console.log("start init qq map");
-    //     let myLatlng = new qq.maps.LatLng(39.916527, 116.397128);
-    //     let myOptions = {
-    //       zoom: 12, //设置地图缩放级别
-    //       center: myLatlng, //设置中心点样式
-    //       mapTypeId: qq.maps.MapTypeId.ROADMAP, //设置地图样式详情参见MapType,
-    //       mapStyleId: "style1"
-    //     };
-    //     let map = new qq.maps.Map(
-    //       document.getElementById("mapContainer"),
-    //       myOptions
-    //     );        
-    //     qq.maps.event.addListener(map, "click", function(event) {
-    //       console.log(
-    //         "您点击的位置为: [" +
-    //           event.latLng.getLat() +
-    //           ", " +
-    //           event.latLng.getLng() +
-    //           "]"
-    //       );
-    //     });
-
-    //     var geolocation = new qq.maps.Geolocation("CFDBZ-2RSRU-GBOVG-4HHQH-WKXQ2-G7BVR", "BSM");
-    //     geolocation.getLocation(position => {
-    //       let pos = new qq.maps.LatLng(position.lat, position.lng);
-    //       map.panTo(pos);
-    //         var marker = new qq.maps.Marker({
-    //             position: pos,
-    //             animation: qq.maps.MarkerAnimation.BOUNCE,
-    //             map: map
-    //         });
-
-    //         var citylocation = new qq.maps.CityService({
-    //             map : map,
-    //             complete : function(results){
-    //                 console.log(9999,results)
-    //             }
-    //         });
-    //     }, (err) => {
-    //       console.error('定位失败', err);
-    //     }, {timeout: 8000});
-                      
-    // });
     }
   },
   mounted: function() {
