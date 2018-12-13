@@ -12,6 +12,9 @@
     },
     "cordova-plugin-nativestorage": {
       "PACKAGE_NAME": "com.fly.basestation.monitor"
+    },
+    "cordova-plugin-geolocation": {
+      "PACKAGE_NAME": "com.fly.basestation.monitor"
     }
   },
   "dependent_plugins": {}

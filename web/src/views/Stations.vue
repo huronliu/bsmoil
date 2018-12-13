@@ -24,7 +24,6 @@
                     <v-select
                       :items="provinces"
                       item-text="name"
-                      item-value="name"
                       v-model="curProvince"
                       return-object
                       v-on:change="changeProvince"
@@ -40,6 +39,7 @@
                       :items="cities"
                       item-text="name"
                       v-model="curCity"
+                      return-object
                     ></v-select>
                   </v-list-tile-action>
                 </v-list-tile>
@@ -164,6 +164,7 @@
 
 <script>
 import _ from "lodash";
+import moment from 'moment';
 import { TMap } from "../modules/tmap";
 import allcities from '../config/cities.json';
 
@@ -185,10 +186,14 @@ export default {
 
       map: null,
       map_searchCity: null,
+      map_autoComplete: null,
       provinces: [],
       cities: [],
       curProvince: null,
-      curCity: null
+      curCity: null,
+
+      map_touch_start: null,
+      map_temp_marker: null
     };
   },
   computed: {
@@ -200,7 +205,7 @@ export default {
     pageTitle: {
       get() {
         if (this.curCity) {
-          this.city = this.curCity;
+          this.city = this.curCity.name;
         }
         return '基站 - ' + this.city;
       }
@@ -210,22 +215,33 @@ export default {
     selectCity() {      
     },
     applyCity() {
-
+      this.cityDialog = false;
+      if (this.curCity) {
+        this.map.setZoomAndCenter(10, this.curCity.center);
+        if (this.curCity.citycode) {
+          this.map_autoComplete.setCity(this.curCity.citycode);
+          this.map_autoComplete.setCityLimit(true);
+        }        
+      }
     },
     changeDisplayMode(mode) {
       this.displayMode = mode;
       console.log(`display mode changed to ${this.displayMode}`);
     },
-    changeProvince(item) {      
+    changeProvince() {
+      this.cities = [];
       if (this.curProvince) {
-        this.map_searchCity.search(this.curProvince, (status, result) => {
-          if (status === 'complete') {
-            this.cities = result.districtList[0].districtList;
-          } else {
-            console.log('search cities status: ' + status);
-          }
-        });
+        this.cities = this.curProvince.districtList;
+        this.curCity = this.cities[0];
       }
+    },
+    geoLocated(result) {
+      console.log(result);
+      this.map.getCity((cityinfo) => {
+        if (cityinfo && cityinfo.city) {
+          this.curCity = cityinfo.city;
+        }
+      });
     },
     isBlank(val) {
       if (val === null) return true;
@@ -312,53 +328,73 @@ export default {
           ],
           viewMode:'2D'
       });
-      var marker = new AMap.Marker({
-          position:[116.39, 39.9]//位置
-      })
-      this.map.add(marker);
-      marker.on('click',(e) => {
-        var infoWindow = new AMap.InfoWindow({
-            isCustom: true,
-            content:'<div>信息窗体</div>',
-            offset: new AMap.Pixel(16, -45)
-        });
-        infoWindow.open(this.map, e.target.getPosition());
+
+      AMap.event.addListener(this.map, 'touchstart', (e) => {
+        if (document.getElementById('searchKey') === document.activeElement) {
+          document.getElementById('searchKey').blur();
+        }
+        this.map_touch_start = moment();
       });
-      
+      AMap.event.addListener(this.map, 'touchmove', (e) => {
+        this.map_touch_start = null;
+      });
+      AMap.event.addListener(this.map, 'touchend', (e) => {
+        if (this.map_touch_start) {
+          if (moment().diff(this.map_touch_start, 'seconds') > 3) {
+            this.map_temp_marker = new AMap.Marker({
+              map: this.map,
+              position: e.lnglat,
+              draggable: true
+            });
+            this.map.add(this.map_temp_marker);
+          }
+          this.map_touch_start = null;
+        }
+      });
+      AMap.event.addListener(this.map, 'dblclick', (e) => {
+        console.log(e);
+      });
+            
       AMap.plugin(['AMap.Geolocation', 'AMap.Autocomplete', 'AMap.DistrictSearch'], () => {
         //get current location
         let geolocation = new AMap.Geolocation({
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 30000,
           buttonOffset: new AMap.Pixel(10, 170),
           zoomToAccuracy: true,     
-          buttonPosition: 'RB'
+          buttonPosition: 'RB',
+          showCircle: false,
+          useNative: true
         });
         this.map.addControl(geolocation);
-        geolocation.getCurrentPosition((status,result) => {
-            if(status=='complete'){
-                console.log(JSON.stringify(result));
-            }else{
-                console.error(JSON.stringify(result));
-            }
+        
+        AMap.event.addListener(geolocation, 'complete', (result) => {
+          this.geoLocated(result);
         });
+        AMap.event.addListener(geolocation, 'error', (err) => {
+          console.error(err);
+        })
+        if (!geolocation.isSupported()) {
+          console.error('Geo Location is not supported');
+        }
 
         //auto-complete
         let autoOptions = {
           input: 'searchKey',
-          city: '全国'
+          city: '北京',
+          citylimit: true 
         };
-        let autoComplete= new AMap.Autocomplete(autoOptions);        
-        AMap.event.addListener(autoComplete, 'select', (e) => {
-          console.log(JSON.stringify(e));
+        this.map_autoComplete = new AMap.Autocomplete(autoOptions);        
+        AMap.event.addListener(this.map_autoComplete, 'select', (e) => {
+          console.log(`select search result: ${JSON.stringify(e)}`);
           if (e && e.poi) {
             this.searchKey = e.poi.name
             this.map.setZoomAndCenter(15, e.poi.location);
           }          
         });
-        AMap.event.addListener(autoComplete, 'complete', (e) => {          
+        AMap.event.addListener(this.map_autoComplete, 'complete', (e) => {          
         });
-        AMap.event.addListener(autoComplete, 'error', (e) => {
+        AMap.event.addListener(this.map_autoComplete, 'error', (e) => {
           console.error(`Error when select search result: ${JSON.stringify(e)}`);
         });
 

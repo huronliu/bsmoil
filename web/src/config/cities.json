@@ -1,13 +1,15 @@
 [
   {"citycode":"010","adcode":"110000","name":"北京市","center":{"P":39.904989,"R":116.40528499999999,"lng":116.405285,"lat":39.904989},"level":"province",
-  "districtList":[{"citycode":"010","adcode":"110100","name":"北京城区","center":{"P":39.904989,"R":116.40528499999999,"lng":116.405285,"lat":39.904989},"level":"city"}]
+  "districtList":[
+    {"citycode":"010","adcode":"110100","name":"北京城区","center":{"P":39.904989,"R":116.40528499999999,"lng":116.405285,"lat":39.904989},"level":"city"}]
   },
   {"citycode":"021","adcode":"310000","name":"上海市","center":{"P":31.231706,"R":121.472644,"lng":121.472644,"lat":31.231706},"level":"province",
   "districtList":[
     {"citycode":"021","adcode":"310100","name":"上海城区","center":{"P":31.231706,"R":121.472644,"lng":121.472644,"lat":31.231706},"level":"city"}]
   },
   {"citycode":"022","adcode":"120000","name":"天津市","center":{"P":39.125596,"R":117.190182,"lng":117.190182,"lat":39.125596},"level":"province",
-  "districtList":[{"citycode":"022","adcode":"120100","name":"天津城区","center":{"P":39.125596,"R":117.190182,"lng":117.190182,"lat":39.125596},"level":"city"}]
+  "districtList":[
+    {"citycode":"022","adcode":"120100","name":"天津城区","center":{"P":39.125596,"R":117.190182,"lng":117.190182,"lat":39.125596},"level":"city"}]
   },
   {"citycode":"023","adcode":"500000","name":"重庆市","center":{"P":29.533155,"R":106.50496199999998,"lng":106.504962,"lat":29.533155},"level":"province",
   "districtList":[
