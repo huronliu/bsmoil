@@ -10,6 +10,7 @@ import Header from './components/Header';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import utils from './modules/utils';
 import axios from 'axios';
+import "@/registerServiceWorker";
 
 Vue.config.productionTip = false
 Vue.component('mobile-footer', Footer);

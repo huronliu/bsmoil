@@ -12,7 +12,7 @@
       <v-toolbar id="stations-toolbar" dense>
         <v-text-field id="searchKey" class="ml-2" clearable v-model="searchKey"></v-text-field>        
         <v-dialog v-model="cityDialog" scrollable persistent max-width="85vw">
-          <v-btn slot="activator" icon style="font-size:18px" v-on:click="selectCity()">
+          <v-btn slot="activator" icon style="font-size:18px" v-on:click="selectCity">
             <v-icon light>location_city</v-icon>
           </v-btn>          
           <v-card class="elevation-20 px-2">
@@ -49,7 +49,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn flat @click="cityDialog = false">取消</v-btn>
-              <v-btn color="primary" flat @click="applyCity()">选择</v-btn>
+              <v-btn color="primary" flat v-on:touchstart="applyCity()">选择</v-btn>
             </v-card-actions>
           </v-card>
           <v-spacer></v-spacer>
@@ -157,7 +157,56 @@
       </v-layout>
       <v-layout v-show="displayMode === 'map'">
         <div id="mapContainer" style="width:100vw; height:100vh"></div>
+        <v-menu
+          v-model="map_temp_menu_show"
+          :position-x="map_temp_menu_x"
+          :position-y="map_temp_menu_y"
+          absolute
+          offset-y
+        >
+          <v-list>
+            <v-list-tile>
+              <v-list-tile-title @click="showNewStationDialog=true">增加新基站</v-list-tile-title>
+            </v-list-tile>
+            <v-divider></v-divider>
+            <v-list-tile>
+              <v-list-tile-title @click="cancelTempMarker">取消操作</v-list-tile-title>
+            </v-list-tile>
+          </v-list>
+        </v-menu>
+        <v-menu
+          v-model="map_station_menu_show"
+          :position-x="map_station_menu_x"
+          :position-y="map_station_menu_y"
+          absolute
+          offset-y
+        >
+          <v-list>
+            <v-list-tile>
+              <v-list-tile-title @click="onEditStationMenuClicked">查看基站详细信息</v-list-tile-title>
+            </v-list-tile>
+            <v-divider></v-divider>
+            <v-list-tile>
+              <v-list-tile-title @click="onEditStationMenuClicked">编辑基站信息</v-list-tile-title>
+            </v-list-tile>
+            <v-divider></v-divider>
+            <v-list-tile>
+              <v-list-tile-title @click="onEditStationMenuClicked">移动基站位置</v-list-tile-title>
+            </v-list-tile>
+            <v-divider></v-divider>
+            <v-list-tile>
+              <v-list-tile-title @click="onEditStationMenuClicked">删除基站位置</v-list-tile-title>
+            </v-list-tile>
+          </v-list>
+        </v-menu>
       </v-layout>
+
+      <edit-station is-new="true" :show-edit-dialog="showNewStationDialog"
+          :station="{}"
+          v-on:save="tempMenuSave" v-on:cancel="tempMenuCancel"></edit-station>
+      <edit-station is-new="false" :show-edit-dialog="showEditStationDialog"
+          :station="curStation? curStation.station : {}"
+          v-on:save="onEditStationSave" v-on:cancel="onEditStationCancel"></edit-station>    
     </v-card>
   </v-container>
 </template>
@@ -167,9 +216,14 @@ import _ from "lodash";
 import moment from 'moment';
 import { TMap } from "../modules/tmap";
 import allcities from '../config/cities.json';
+import demostations from '../config/stations.json';
+import EditStation from '../components/EditStation.vue';
 
 export default {
   name: "Stations",
+  components: {
+    EditStation
+  },
   data() {
     return {
       displayMode: "map",
@@ -183,17 +237,31 @@ export default {
       filterMenu: false,
       cityDialog: false,
       stations: [], 
+      curStation: null, 
+      newStation: {},
 
       map: null,
       map_searchCity: null,
       map_autoComplete: null,
+
       provinces: [],
       cities: [],
       curProvince: null,
       curCity: null,
 
-      map_touch_start: null,
-      map_temp_marker: null
+      map_touch_start: null, //record the time when user start touch on map
+      map_temp_marker: null, //used for creating new station
+      map_temp_menu_ready: false, //used for checking whether should show the menu of temp marker 
+      map_temp_menu_show: false,
+      map_temp_menu_x: 0,
+      map_temp_menu_y: 0,
+      map_station_menu_show: false, //show menu of station marker
+      map_station_menu_ready: false,
+      map_station_menu_x: 0,
+      map_station_menu_y: 0,
+
+      showNewStationDialog: false,
+      showEditStationDialog: false
     };
   },
   computed: {
@@ -212,8 +280,13 @@ export default {
     }
   },
   methods: {
-    selectCity() {      
+    //diaplay mode
+    changeDisplayMode(mode) {
+      this.displayMode = mode;
+      console.log(`display mode changed to ${this.displayMode}`);
     },
+
+    //search city
     applyCity() {
       this.cityDialog = false;
       if (this.curCity) {
@@ -223,10 +296,9 @@ export default {
           this.map_autoComplete.setCityLimit(true);
         }        
       }
-    },
-    changeDisplayMode(mode) {
-      this.displayMode = mode;
-      console.log(`display mode changed to ${this.displayMode}`);
+    },    
+    selectCity() {
+      this.cityDialog = true;
     },
     changeProvince() {
       this.cities = [];
@@ -235,7 +307,17 @@ export default {
         this.curCity = this.cities[0];
       }
     },
-    geoLocated(result) {
+
+    //filter menu
+    filterCancelClick() {
+      this.filterMenu = false;
+    },
+    filterApplyClick() {
+      this.filterMenu = false;
+    },
+
+    //current geo location
+    geoLocated(result) { 
       console.log(result);
       this.map.getCity((cityinfo) => {
         if (cityinfo && cityinfo.city) {
@@ -243,27 +325,16 @@ export default {
         }
       });
     },
-    isBlank(val) {
-      if (val === null) return true;
 
-      if (typeof val === "number") return false;
-
-      if (typeof val === "string") {
-        return val.trim().length === 0;
-      }
-
-      if (val === undefined) return true;
-      if (typeof val === "boolean") return false;
-
-      return true;
-    },
-
+    //handle when click the station marker on map or in the list
     showDetail(station) {
       this.$router.push({
         name: "stationDetail",
         params: { station: station }
       });
     },
+
+    //reload stations
     refresh() {
       console.log("refresh");
       this.loadStations();
@@ -280,45 +351,144 @@ export default {
       this.$utils.toast("没有更多");
     },
 
-    loadStations() {
-      this.$utils.showLoading();
-      this.$http
-        .get("/api/stations/list")
-        .then(result => {
-          this.$utils.hideLoading();
-          var retData = result.data;
-          this.stations = _.orderBy(retData, [], []);
-          this.showFirstPage();
-        })
-        .catch(error => {
-          this.$utils.hideLoading();
-          var errorMsg = "";
-          if (
-            error &&
-            error.response &&
-            error.response.status &&
-            error.response.status === 401
-          ) {
-            errorMsg = "获取站点数据超时";
-          } else {
-            errorMsg = `获取站点数据时出错: ${error.message}`;
-          }
+    //add new station
+    addNewStation(station, lnglat) {
+      let st = {
+          station: station, 
+          marker: new AMap.Marker({
+            map: this.map,
+            position: lnglat,
+            draggable: false,
+            clickable: true,
+            label: {content: station.id, offset: new AMap.Pixel(0, 35)},
+            animation: "AMAP_ANIMATION_DROP"
+          })      
+        };
+        this.map.add(st.marker);
+        this.stations.push(st);
 
-          this.$utils.toast(errorMsg);
+        // st.marker.on(['touchstart'], (e) => {
+        //   this.map_station_menu_ready = true;
+        // });
+        // st.marker.on(['touchmove'], (e) => {
+        //   this.map_station_menu_ready = false;
+        // });
+        st.marker.on(['touchend'], (e) => {
+          //if (this.map_station_menu_ready) {
+            this.map_station_menu_show = true;
+            this.map_station_menu_ready = false;
+            this.map_station_menu_x = e.pixel.getX();
+            this.map_station_menu_y = e.pixel.getY();
+            this.curStation = st;
+          //}
         });
     },
-    filterCancelClick() {
-      this.filterMenu = false;
+    addTempMarker(lnglat) {
+      if (this.map_temp_marker) {
+        //if temp marker exist, we will move it
+        this.map_temp_marker.setPosition(lnglat);
+      } else {
+        this.map_temp_marker = new AMap.Marker({
+          map: this.map,
+          position: lnglat,
+          draggable: true,
+          animation: "AMAP_ANIMATION_DROP",
+          clickable: true
+        });
+        this.map.add(this.map_temp_marker);
+
+        this.map_temp_marker.on('touchstart', (e) => {
+          this.map_temp_menu_ready = true;
+        });
+        this.map_temp_marker.on('touchmove', (e) => {
+          //this.map_temp_menu_ready = false;
+        });
+        this.map_temp_marker.on('touchend', (e) => {
+          //if (this.map_temp_menu_ready) {
+            this.map_temp_menu_show = true;
+            this.map_temp_menu_ready = false;
+            this.map_temp_menu_x = e.pixel.getX();
+            this.map_temp_menu_y = e.pixel.getY();
+          //}
+        });
+      }
     },
-    filterApplyClick() {
-      this.filterMenu = false;
+    tempMenuSave(station) {
+      this.showNewStationDialog = false;
+      console.log(station);
+
+      let lnglat = this.map_temp_marker.getPosition();
+      this.map.remove(this.map_temp_marker);
+      this.map_temp_marker = null;
+      
+      this.addNewStation(station, lnglat);
+            
+      this.stations.forEach(st => {
+        console.log(JSON.stringify({
+          id: st.station.id, title: st.station.title, level: st.station.level, 
+          position: st.marker.getPosition()
+        }));
+      })
+      
     },
-    initMap() {
-      var buildings = new AMap.Buildings({
-          'zooms':[16,18],
-          'zIndex':10,
-          'heightFactor':2
+    tempMenuCancel() {
+      this.showNewStationDialog = false;
+    },
+    cancelTempMarker() {
+      if (this.map_temp_marker) {
+        this.map.remove(this.map_temp_marker);
+        this.map_temp_marker = null;
+      }
+    },
+
+    //edit station
+    onEditStationMenuClicked() {
+      this.showEditStationDialog = true;
+    },
+    onEditStationSave() {
+      this.showEditStationDialog = false;
+    },
+    onEditStationCancel() {
+      this.showEditStationDialog = false;
+    },
+
+    //load stations from server
+    loadStations() {
+      this.$utils.showLoading();
+      //load some demo data
+      demostations.forEach(ds => {
+        this.addNewStation(ds, ds.position);
       });
+      this.$utils.hideLoading();
+      // this.$http
+      //   .get("/api/stations/list")
+      //   .then(result => {
+      //     this.$utils.hideLoading();
+      //     var retData = result.data;
+      //     this.stations = _.orderBy(retData, [], []);
+      //     this.showFirstPage();
+      //   })
+      //   .catch(error => {
+      //     this.$utils.hideLoading();
+      //     var errorMsg = "";
+      //     if (
+      //       error &&
+      //       error.response &&
+      //       error.response.status &&
+      //       error.response.status === 401
+      //     ) {
+      //       errorMsg = "获取站点数据超时";
+      //     } else {
+      //       errorMsg = `获取站点数据时出错: ${error.message}`;
+      //     }
+
+      //     this.$utils.toast(errorMsg);
+      //   });
+
+    },
+
+    //initialize map
+    initMap() {
       this.map = new AMap.Map('mapContainer', {
           zoom:11,
           center: [116.397428, 39.90923],
@@ -326,33 +496,36 @@ export default {
               //new AMap.TileLayer.Satellite(),
               //buildings
           ],
-          viewMode:'2D'
+          viewMode:'3D',
+          mapStyle: "amap://styles/8c300aebf1b10327aa1e687d2fe8e654"
       });
 
       AMap.event.addListener(this.map, 'touchstart', (e) => {
+        this.map_touch_start = moment();
         if (document.getElementById('searchKey') === document.activeElement) {
           document.getElementById('searchKey').blur();
+        }        
+        if (this.map_temp_menu_show) {
+          this.map_temp_menu_show = false;
         }
-        this.map_touch_start = moment();
+        if (this.map_station_menu_show) {
+          this.map_station_menu_show = false;
+        }
       });
       AMap.event.addListener(this.map, 'touchmove', (e) => {
-        this.map_touch_start = null;
+        //this.map_touch_start = null;
       });
       AMap.event.addListener(this.map, 'touchend', (e) => {
-        if (this.map_touch_start) {
-          if (moment().diff(this.map_touch_start, 'seconds') > 3) {
-            this.map_temp_marker = new AMap.Marker({
-              map: this.map,
-              position: e.lnglat,
-              draggable: true
-            });
-            this.map.add(this.map_temp_marker);
+        if (this.map_touch_start) {          
+          let elapsed = moment().diff(this.map_touch_start);
+          console.log(`touch end after ${JSON.stringify(e.lnglat)}`);
+          //if long touch over 2 seconds, we will need add a temp marker on the map
+          if (elapsed > 2000) {
+            console.log(`long touch on ${e.lnglat}`);
+            this.addTempMarker(e.lnglat);
           }
           this.map_touch_start = null;
         }
-      });
-      AMap.event.addListener(this.map, 'dblclick', (e) => {
-        console.log(e);
       });
             
       AMap.plugin(['AMap.Geolocation', 'AMap.Autocomplete', 'AMap.DistrictSearch'], () => {
@@ -412,11 +585,9 @@ export default {
   },
   mounted: function() {
     this.initMap();
-  },
-  beforeMount: function() {},
-  activated: function() {
-    //this.initMap();
     this.loadStations();
+  },
+  activated: function() {
   },
   deactivated: function() {}
 };
