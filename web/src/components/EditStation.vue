@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="showEditDialog" scrollable persistent max-width="85vw">
+  <v-dialog v-model="showEditDialog" scrollable persistent max-width="85vw" style="z-index: 999">
     <v-card class="elevation-20 ">
       <v-card-title
           primary-title

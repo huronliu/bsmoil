@@ -1,6 +1,7 @@
 import Vue from 'vue';
 //import './plugins/vuetify';
 import "@/plugins/vuetify";
+import VueAMap from 'vue-amap';
 
 import App from './App.vue'
 import store from './store'
@@ -10,7 +11,14 @@ import Header from './components/Header';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import utils from './modules/utils';
 import axios from 'axios';
-import "@/registerServiceWorker";
+
+Vue.use(VueAMap);
+VueAMap.initAMapApiLoader({
+  key: '7292a679221c51cf812a9552a75f5573',
+  plugin: ['AMap.Geolocation', 'AMap.Autocomplete', 'AMap.DistrictSearch', 'AMap.ToolBar'],
+  // 默认高德 sdk 版本为 1.4.4
+  v: '1.4.4'
+});
 
 Vue.config.productionTip = false
 Vue.component('mobile-footer', Footer);

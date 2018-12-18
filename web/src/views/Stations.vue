@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid>
+  <v-container fluid style="padding: 0">
     <mobile-header :title="pageTitle">
       <template>
         <v-btn icon large v-on:click="refresh()">
@@ -156,13 +156,23 @@
         </v-layout>
       </v-layout>
       <v-layout v-show="displayMode === 'map'">
-        <div id="mapContainer" style="width:100vw; height:100vh"></div>
+        <el-amap ref="map" vid="mapContainer" :amap-manager="amapManager" :center="mapCenter" :zoom="zoom" :plugin="plugin" :events="events" class="map">
+          <el-amap-marker v-for="(marker, index) in markers" 
+            :position="marker.position" 
+            :events="marker.events" 
+            :visible="marker.visible" 
+            :draggable="marker.draggable" 
+            :vid="index"
+            v-bind:key="index">
+          </el-amap-marker>
+        </el-amap>
         <v-menu
           v-model="map_temp_menu_show"
           :position-x="map_temp_menu_x"
           :position-y="map_temp_menu_y"
           absolute
           offset-y
+          style="z-index: 999"
         >
           <v-list>
             <v-list-tile>
@@ -180,6 +190,7 @@
           :position-y="map_station_menu_y"
           absolute
           offset-y
+          style="z-index: 999"
         >
           <v-list>
             <v-list-tile>
@@ -214,10 +225,12 @@
 <script>
 import _ from "lodash";
 import moment from 'moment';
-import { TMap } from "../modules/tmap";
 import allcities from '../config/cities.json';
 import demostations from '../config/stations.json';
 import EditStation from '../components/EditStation.vue';
+import VueAMap from 'vue-amap';
+
+let amapManager = new VueAMap.AMapManager();
 
 export default {
   name: "Stations",
@@ -240,9 +253,41 @@ export default {
       curStation: null, 
       newStation: {},
 
-      map: null,
+      //amap 
+      // map: null,
       map_searchCity: null,
       map_autoComplete: null,
+
+      amapManager,
+      zoom: 12,
+      mapCenter: [116.397428, 39.90923],
+      events: {
+        init: (o) => {
+          console.log(o.getCenter())
+          console.log(this.$refs.map.$$getInstance())
+          o.getCity(result => {
+            console.log(result)
+          })
+        },
+        'moveend': () => {
+        },
+        'zoomchange': () => {
+        },
+        'click': (e) => {
+          console.log("Map clicked");
+        }
+      },
+      plugin: ['ToolBar', {
+        pName: 'MapType',
+        defaultType: 0,
+        events: {
+          init(o) {
+            console.log(o);
+          }
+        }
+      }],
+      mapStyle: "amap://styles/8c300aebf1b10327aa1e687d2fe8e654",
+      markers: [],
 
       provinces: [],
       cities: [],
@@ -256,7 +301,6 @@ export default {
       map_temp_menu_x: 0,
       map_temp_menu_y: 0,
       map_station_menu_show: false, //show menu of station marker
-      map_station_menu_ready: false,
       map_station_menu_x: 0,
       map_station_menu_y: 0,
 
@@ -353,73 +397,90 @@ export default {
 
     //add new station
     addNewStation(station, lnglat) {
-      let st = {
-          station: station, 
-          marker: new AMap.Marker({
-            map: this.map,
-            position: lnglat,
-            draggable: false,
-            clickable: true,
-            label: {content: station.id, offset: new AMap.Pixel(0, 35)},
-            animation: "AMAP_ANIMATION_DROP"
-          })      
-        };
-        this.map.add(st.marker);
-        this.stations.push(st);
+      let self = this;
 
-        // st.marker.on(['touchstart'], (e) => {
-        //   this.map_station_menu_ready = true;
-        // });
-        // st.marker.on(['touchmove'], (e) => {
-        //   this.map_station_menu_ready = false;
-        // });
-        st.marker.on(['touchend'], (e) => {
-          //if (this.map_station_menu_ready) {
-            this.map_station_menu_show = true;
-            this.map_station_menu_ready = false;
-            this.map_station_menu_x = e.pixel.getX();
-            this.map_station_menu_y = e.pixel.getY();
-            this.curStation = st;
-          //}
-        });
+      this.markers.push({
+        position: [lnglat.lng, lnglat.lat],
+        events: {
+          click: (e) => {
+            self.map_station_menu_x = e.pixel.getX();
+            self.map_station_menu_y = e.pixel.getY();
+            self.curStation = station;
+            self.map_station_menu_show = true;
+            console.log("Station Marker TOUCH END: " + e.pixel);
+          },
+          dragend: (e) => {
+            console.log('---event---: dragend');
+          }
+        },
+        visible: true,
+        draggable: false,
+        template: `<span>${station.id}</span>`,
+        station: station
+      });
+      // let map = this.amapManager.getMap();
+      // let st = {
+      //     station: station, 
+      //     marker: new AMap.Marker({
+      //       map: map,
+      //       position: lnglat,
+      //       draggable: false,
+      //       clickable: true,
+      //       bubble: false,
+      //       label: {content: station.id, offset: new AMap.Pixel(0, 35)},
+      //       animation: "AMAP_ANIMATION_DROP"
+      //     })      
+      //   };
+      //   map.add(st.marker);
+      //   this.stations.push(st);
+
+      //   st.marker.on(['click'], (e) => {
+            
+      //     this.map_station_menu_x = e.pixel.getX();
+      //     this.map_station_menu_y = e.pixel.getY();
+      //     this.curStation = st;
+      //     this.map_station_menu_show = true;
+      //     console.log("Station Marker TOUCH END: " + e.pixel);
+        
+      //   });
+    },
+    calcDist(x1, y1, x2, y2) {
+      let a = x2 - x1;
+      let b = y2 - y1;
+      return Math.sqrt( a*a + b*b );
     },
     addTempMarker(lnglat) {
+      let map = this.amapManager.getMap();
       if (this.map_temp_marker) {
         //if temp marker exist, we will move it
         this.map_temp_marker.setPosition(lnglat);
       } else {
         this.map_temp_marker = new AMap.Marker({
-          map: this.map,
+          map: map,
           position: lnglat,
           draggable: true,
           animation: "AMAP_ANIMATION_DROP",
           clickable: true
         });
-        this.map.add(this.map_temp_marker);
+        map.add(this.map_temp_marker);
 
-        this.map_temp_marker.on('touchstart', (e) => {
-          this.map_temp_menu_ready = true;
-        });
-        this.map_temp_marker.on('touchmove', (e) => {
-          //this.map_temp_menu_ready = false;
-        });
-        this.map_temp_marker.on('touchend', (e) => {
+        this.map_temp_marker.on('click', (e) => {
           //if (this.map_temp_menu_ready) {
-            this.map_temp_menu_show = true;
-            this.map_temp_menu_ready = false;
             this.map_temp_menu_x = e.pixel.getX();
             this.map_temp_menu_y = e.pixel.getY();
+            this.map_temp_menu_show = true;            
           //}
         });
       }
     },
     tempMenuSave(station) {
+      let map = this.amapManager.getMap();
       this.showNewStationDialog = false;
       console.log(station);
 
       let lnglat = this.map_temp_marker.getPosition();
-      this.map.remove(this.map_temp_marker);
-      this.map_temp_marker = null;
+      map.remove(this.map_temp_marker);
+      map_temp_marker = null;
       
       this.addNewStation(station, lnglat);
             
@@ -435,9 +496,10 @@ export default {
       this.showNewStationDialog = false;
     },
     cancelTempMarker() {
+      let map = this.amapManager.getMap();
       if (this.map_temp_marker) {
-        this.map.remove(this.map_temp_marker);
-        this.map_temp_marker = null;
+        map.remove(this.map_temp_marker);
+        map_temp_marker = null;
       }
     },
 
@@ -489,98 +551,101 @@ export default {
 
     //initialize map
     initMap() {
-      this.map = new AMap.Map('mapContainer', {
-          zoom:11,
-          center: [116.397428, 39.90923],
-          layers: [
-              //new AMap.TileLayer.Satellite(),
-              //buildings
-          ],
-          viewMode:'3D',
-          mapStyle: "amap://styles/8c300aebf1b10327aa1e687d2fe8e654"
-      });
+      // this.map = new AMap.Map('mapContainer', {
+      //     zoom:11,
+      //     center: [116.397428, 39.90923],
+      //     layers: [
+      //         //new AMap.TileLayer.Satellite(),
+      //         //buildings
+      //     ],
+      //     viewMode:'3D',
+      //     mapStyle: "amap://styles/8c300aebf1b10327aa1e687d2fe8e654"
+      // });
 
-      AMap.event.addListener(this.map, 'touchstart', (e) => {
-        this.map_touch_start = moment();
-        if (document.getElementById('searchKey') === document.activeElement) {
-          document.getElementById('searchKey').blur();
-        }        
-        if (this.map_temp_menu_show) {
-          this.map_temp_menu_show = false;
-        }
-        if (this.map_station_menu_show) {
-          this.map_station_menu_show = false;
-        }
-      });
-      AMap.event.addListener(this.map, 'touchmove', (e) => {
-        //this.map_touch_start = null;
-      });
-      AMap.event.addListener(this.map, 'touchend', (e) => {
-        if (this.map_touch_start) {          
-          let elapsed = moment().diff(this.map_touch_start);
-          console.log(`touch end after ${JSON.stringify(e.lnglat)}`);
-          //if long touch over 2 seconds, we will need add a temp marker on the map
-          if (elapsed > 2000) {
-            console.log(`long touch on ${e.lnglat}`);
-            this.addTempMarker(e.lnglat);
-          }
-          this.map_touch_start = null;
-        }
-      });
+      // AMap.event.addListener(this.map, 'touchstart', (e) => {
+      //   this.map_touch_start = moment();
+      //   if (document.getElementById('searchKey') === document.activeElement) {
+      //     document.getElementById('searchKey').blur();
+      //   }        
+      //   if (this.map_temp_menu_show) {
+      //     this.map_temp_menu_show = false;
+      //   }
+      //   if (this.map_station_menu_show) {
+      //     this.map_station_menu_show = false;
+      //   }
+      // });
+      // AMap.event.addListener(this.map, 'touchmove', (e) => {
+      //   //this.map_touch_start = null;
+      // });
+      // AMap.event.addListener(this.map, 'touchend', (e) => {
+      //   this.map_station_menu_show = false;
+      //   this.map_temp_menu_show = false;
+
+      //   if (this.map_touch_start) {          
+      //     let elapsed = moment().diff(this.map_touch_start);
+      //     console.log(`touch end after ${JSON.stringify(e.lnglat)}`);
+      //     //if long touch over 2 seconds, we will need add a temp marker on the map
+      //     if (elapsed > 2000) {
+      //       console.log(`long touch on ${e.lnglat}`);
+      //       this.addTempMarker(e.lnglat);
+      //     }
+      //     this.map_touch_start = null;
+      //   }
+      // });
             
-      AMap.plugin(['AMap.Geolocation', 'AMap.Autocomplete', 'AMap.DistrictSearch'], () => {
-        //get current location
-        let geolocation = new AMap.Geolocation({
-          enableHighAccuracy: true,
-          timeout: 30000,
-          buttonOffset: new AMap.Pixel(10, 170),
-          zoomToAccuracy: true,     
-          buttonPosition: 'RB',
-          showCircle: false,
-          useNative: true
-        });
-        this.map.addControl(geolocation);
+      // AMap.plugin(['AMap.Geolocation', 'AMap.Autocomplete', 'AMap.DistrictSearch'], () => {
+      //   //get current location
+      //   let geolocation = new AMap.Geolocation({
+      //     enableHighAccuracy: true,
+      //     timeout: 30000,
+      //     buttonOffset: new AMap.Pixel(10, 170),
+      //     zoomToAccuracy: true,     
+      //     buttonPosition: 'RB',
+      //     showCircle: false,
+      //     useNative: true
+      //   });
+      //   this.map.addControl(geolocation);
         
-        AMap.event.addListener(geolocation, 'complete', (result) => {
-          this.geoLocated(result);
-        });
-        AMap.event.addListener(geolocation, 'error', (err) => {
-          console.error(err);
-        })
-        if (!geolocation.isSupported()) {
-          console.error('Geo Location is not supported');
-        }
+      //   AMap.event.addListener(geolocation, 'complete', (result) => {
+      //     this.geoLocated(result);
+      //   });
+      //   AMap.event.addListener(geolocation, 'error', (err) => {
+      //     console.error(err);
+      //   })
+      //   if (!geolocation.isSupported()) {
+      //     console.error('Geo Location is not supported');
+      //   }
 
-        //auto-complete
-        let autoOptions = {
-          input: 'searchKey',
-          city: '北京',
-          citylimit: true 
-        };
-        this.map_autoComplete = new AMap.Autocomplete(autoOptions);        
-        AMap.event.addListener(this.map_autoComplete, 'select', (e) => {
-          console.log(`select search result: ${JSON.stringify(e)}`);
-          if (e && e.poi) {
-            this.searchKey = e.poi.name
-            this.map.setZoomAndCenter(15, e.poi.location);
-          }          
-        });
-        AMap.event.addListener(this.map_autoComplete, 'complete', (e) => {          
-        });
-        AMap.event.addListener(this.map_autoComplete, 'error', (e) => {
-          console.error(`Error when select search result: ${JSON.stringify(e)}`);
-        });
+      //   //auto-complete
+      //   let autoOptions = {
+      //     input: 'searchKey',
+      //     city: '北京',
+      //     citylimit: true 
+      //   };
+      //   this.map_autoComplete = new AMap.Autocomplete(autoOptions);        
+      //   AMap.event.addListener(this.map_autoComplete, 'select', (e) => {
+      //     console.log(`select search result: ${JSON.stringify(e)}`);
+      //     if (e && e.poi) {
+      //       this.searchKey = e.poi.name
+      //       this.map.setZoomAndCenter(15, e.poi.location);
+      //     }          
+      //   });
+      //   AMap.event.addListener(this.map_autoComplete, 'complete', (e) => {          
+      //   });
+      //   AMap.event.addListener(this.map_autoComplete, 'error', (e) => {
+      //     console.error(`Error when select search result: ${JSON.stringify(e)}`);
+      //   });
 
-        //search cities
-        this.map_searchCity = new AMap.DistrictSearch({
-          level: 'country',
-          subdistrict: 2
-        });
+      //   //search cities
+      //   this.map_searchCity = new AMap.DistrictSearch({
+      //     level: 'country',
+      //     subdistrict: 2
+      //   });
 
-        //load cities
-        this.provinces = allcities;
+      //   //load cities
+      //   this.provinces = allcities;
         
-      });
+      // });
     }
   },
   mounted: function() {
@@ -671,5 +736,9 @@ i.item_icon {
 }
 .filter_toolbar_item >>> .v-select__selections {
   flex-wrap: nowrap;
+}
+.map {
+  width:100vw; 
+  height: 78vh;
 }
 </style>
