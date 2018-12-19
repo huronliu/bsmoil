@@ -15,7 +15,7 @@ import axios from 'axios';
 Vue.use(VueAMap);
 VueAMap.initAMapApiLoader({
   key: '7292a679221c51cf812a9552a75f5573',
-  plugin: ['AMap.Geolocation', 'AMap.Autocomplete', 'AMap.DistrictSearch', 'AMap.ToolBar'],
+  plugin: ['Geolocation', 'Autocomplete', 'DistrictSearch', 'ToolBar'],
   // 默认高德 sdk 版本为 1.4.4
   v: '1.4.4'
 });

@@ -102,69 +102,64 @@
         </v-dialog>
         
       </v-toolbar>
-      <v-layout justify-center align-center v-show="displayMode !== 'map'">
-        <v-layout v-show="this.stations.length === 0" justify-center>
-          <p class="headline mt-5">没有数据</p>
-        </v-layout>
-        <v-list two-line>
-          <template v-for="(st, index) in stations">
-            <v-list-tile
-              :key="st.id"
-              avatar
-              @click.native="showDetail(st)"
-              class="stationItem"
-            >
-              <v-list-tile-action>
-                <v-icon v-if="st.warning" color="red" class="hot_icon">whatshot</v-icon>
-              </v-list-tile-action>
-              
-              <v-list-tile-content>
-                <v-list-tile-sub-title class="text--primary">
-                  <v-icon class="title_icon" color="red">place</v-icon>
-                  {{ st.location }}
-                </v-list-tile-sub-title>
-                <v-list-tile-sub-title>
-                  <i class="cus-icon slot">&nbsp;&nbsp;&nbsp;&nbsp;</i>
-                  <span class="disable_pn">{{st.machineNumber}}</span>
-                </v-list-tile-sub-title>
-              </v-list-tile-content>
+      <v-layout row wrap justify-center align-center v-show="displayMode !== 'map'">
+        <v-flex xs12>
+          <v-layout v-show="this.stations.length === 0" justify-center>
+            <p class="headline mt-5">没有数据</p>
+          </v-layout>
+        </v-flex>
+        <v-flex xs12>
+            <v-list two-line>
+              <template v-for="(st, index) in stations">
+                <v-list-tile                  
+                  :key="st.id"
+                  avatar
+                  @click.native="showDetail(st)"
+                  class="stationItem"
+                >
+                  <v-list-tile-avatar>
+                    <v-icon v-if="st.warns > 0" color="red">alert</v-icon>
+                  </v-list-tile-avatar>
+                  
+                  <v-list-tile-content>
+                    <v-list-tile-title class="text--primary">
+                      <v-icon class="title_icon">place</v-icon>
+                      {{ st.title }}
+                    </v-list-tile-title>
+                    <v-list-tile-sub-title>
+                      <span class="disable_pn">{{st.id}}</span>
+                    </v-list-tile-sub-title>
+                  </v-list-tile-content>
 
-              <v-list-tile-action>
-                <v-list-tile-action-text>
-                  <v-layout align-center>
-                    <v-flex>
-                      <div class="text--primary">
-                        <v-icon class="amount_icon" color="#ffd700">fas fa-coins</v-icon>
-                        {{ parseInt(st.datacount).toLocaleString() }}
-                      </div>
-                      <div>
-                        <v-icon class="amount_icon">fas fa-calculator</v-icon>
-                        {{ parseInt(st.warnaccount).toLocaleString() }}
-                      </div>
-                    </v-flex>
-                  </v-layout>
-                </v-list-tile-action-text>
-              </v-list-tile-action>
-            </v-list-tile>
-            <v-divider v-if="index + 1 < stations.length" :key="`divider-${index}`"></v-divider>
-          </template>
-        </v-list>
-        <v-layout v-show="hasMoreData" justify-center>
-          <v-btn small flat block color="white" v-on:click="showMore()">
-            <v-icon medium color="indigo">expand_more</v-icon>
-          </v-btn>
-        </v-layout>
+                  <v-list-tile-action>
+                    <v-btn icon ripple>
+                      <v-icon color="grey lighten-1">info</v-icon>
+                    </v-btn>
+                  </v-list-tile-action>                  
+                </v-list-tile>
+                <v-divider v-if="index + 1 < stations.length" :key="`divider-${index}`"></v-divider>
+              </template>  
+            </v-list>
+        </v-flex>
+        <v-flex xs12>
+          <v-layout v-show="hasMoreData" justify-center>
+            <v-btn small flat block color="white" v-on:click="showMore()">
+              <v-icon medium color="indigo">expand_more</v-icon>
+            </v-btn>
+          </v-layout>
+        </v-flex>        
       </v-layout>
       <v-layout v-show="displayMode === 'map'">
-        <el-amap-search-box class="search-box" :search-option="mapSearchOption" :on-search-result="onMapSearchResult"></el-amap-search-box>
-        <el-amap ref="map" vid="mapContainer" :amap-manager="amapManager" :center="mapCenter" :zoom="mapZoom" :plugin="plugin" :events="mapEvents" class="map">
+        <!-- <el-amap-search-box class="search-box" :search-option="mapSearchOption" :on-search-result="onMapSearchResult"></el-amap-search-box> -->
+        <el-amap ref="map" vid="mapContainer" :amap-manager="amapManager" :center="mapCenter" :zoom="mapZoom" :plugin="mapPlugins" :events="mapEvents" class="map">
           <el-amap-marker v-for="(marker, index) in markers" 
             :position="marker.position" 
             :events="marker.events" 
             :visible="marker.visible" 
             :draggable="marker.draggable" 
             :vid="index"
-            v-bind:key="index">
+            v-bind:key="index"
+            :label="marker.label">
           </el-amap-marker>
           <el-amap-marker  
             :position="tempMarker.position" 
@@ -236,6 +231,7 @@ import allcities from '../config/cities.json';
 import demostations from '../config/stations.json';
 import EditStation from '../components/EditStation.vue';
 import VueAMap from 'vue-amap';
+import { lazyAMapApiLoaderInstance } from 'vue-amap';
 
 let amapManager = new VueAMap.AMapManager();
 
@@ -259,8 +255,7 @@ export default {
       stations: [], 
       curStation: null, 
       isAddNew: false,
-      newStation: {},
-
+      
       //amap 
       // map: null,
       map_searchCity: null,
@@ -312,15 +307,17 @@ export default {
           }
         }
       },
-      plugin: ['ToolBar', {
-        pName: 'MapType',
-        defaultType: 0,
-        events: {
-          init(o) {
-            console.log(o);
+      mapPlugins: [
+        'ToolBar', {
+          pName: 'MapType',
+          defaultType: 0,
+          events: {
+            init(o) {
+              console.log(o);
+            }
           }
         }
-      }],
+      ],
       mapStyle: "amap://styles/8c300aebf1b10327aa1e687d2fe8e654",
       markers: [],
       tempMarker: //used for creating new station
@@ -347,8 +344,7 @@ export default {
       curProvince: null,
       curCity: null,
       
-      map_touch_start: null, //record the time when user start touch on map
-      
+      map_touch_start: null, //record the time when user start touch on map      
       map_temp_menu_ready: false, //used for checking whether should show the menu of temp marker 
       map_temp_menu_show: false,
       map_temp_menu_x: 0,
@@ -486,36 +482,12 @@ export default {
             console.log('---event---: dragend');
           }
         },
+        label: {content: station.id, offset: [0, 35]},
         visible: true,
         draggable: false,
-        template: `<span>${station.id}</span>`,
-        station: station
+        template: `<span>${station.id}</span>`
       });
-      // let map = this.amapManager.getMap();
-      // let st = {
-      //     station: station, 
-      //     marker: new AMap.Marker({
-      //       map: map,
-      //       position: lnglat,
-      //       draggable: false,
-      //       clickable: true,
-      //       bubble: false,
-      //       label: {content: station.id, offset: new AMap.Pixel(0, 35)},
-      //       animation: "AMAP_ANIMATION_DROP"
-      //     })      
-      //   };
-      //   map.add(st.marker);
-      //   this.stations.push(st);
-
-      //   st.marker.on(['click'], (e) => {
-            
-      //     this.map_station_menu_x = e.pixel.getX();
-      //     this.map_station_menu_y = e.pixel.getY();
-      //     this.curStation = st;
-      //     this.map_station_menu_show = true;
-      //     console.log("Station Marker TOUCH END: " + e.pixel);
-        
-      //   });
+      this.stations.push(station);
     },
     calcDist(x1, y1, x2, y2) {
       let a = x2 - x1;
@@ -592,92 +564,52 @@ export default {
     },
 
     //initialize map
-    initMap() {
-      // this.map = new AMap.Map('mapContainer', {
-      //     zoom:11,
-      //     center: [116.397428, 39.90923],
-      //     layers: [
-      //         //new AMap.TileLayer.Satellite(),
-      //         //buildings
-      //     ],
-      //     viewMode:'3D',
-      //     mapStyle: "amap://styles/8c300aebf1b10327aa1e687d2fe8e654"
-      // });
+    initMap() {    
+      lazyAMapApiLoaderInstance.load().then(() => {
+        let map = this.amapManager.getMap();
+         //auto-complete
+        let autoOptions = {
+          input: 'searchKey',
+          city: this.city,
+          citylimit: true 
+        };
+        this.map_autoComplete = new AMap.Autocomplete(autoOptions);        
+        this.map_autoComplete.on('select', (e) => {
+          console.log(`select search result: ${JSON.stringify(e)}`);
+          if (e && e.poi) {
+            this.searchKey = e.poi.name;
+            map.setZoomAndCenter(15, e.poi.location);
+          }          
+        });
+        this.map_autoComplete.on('complete', (e) => {          
+        });
+        this.map_autoComplete.on('error', (e) => {
+          console.error(`Error when select search result: ${JSON.stringify(e)}`);
+        });
 
-      // AMap.event.addListener(this.map, 'touchstart', (e) => {
-      //   this.map_touch_start = moment();
-      //   if (document.getElementById('searchKey') === document.activeElement) {
-      //     document.getElementById('searchKey').blur();
-      //   }        
-      //   if (this.map_temp_menu_show) {
-      //     this.map_temp_menu_show = false;
-      //   }
-      //   if (this.map_station_menu_show) {
-      //     this.map_station_menu_show = false;
-      //   }
-      // });
-      // AMap.event.addListener(this.map, 'touchmove', (e) => {
-      //   //this.map_touch_start = null;
-      // });
-      // AMap.event.addListener(this.map, 'touchend', (e) => {
-      //   this.map_station_menu_show = false;
-      //   this.map_temp_menu_show = false;
-
-      //   if (this.map_touch_start) {          
-      //     let elapsed = moment().diff(this.map_touch_start);
-      //     console.log(`touch end after ${JSON.stringify(e.lnglat)}`);
-      //     //if long touch over 2 seconds, we will need add a temp marker on the map
-      //     if (elapsed > 2000) {
-      //       console.log(`long touch on ${e.lnglat}`);
-      //       this.addTempMarker(e.lnglat);
-      //     }
-      //     this.map_touch_start = null;
-      //   }
-      // });
-            
-      // AMap.plugin(['AMap.Geolocation', 'AMap.Autocomplete', 'AMap.DistrictSearch'], () => {
-      //   //get current location
-      //   let geolocation = new AMap.Geolocation({
-      //     enableHighAccuracy: true,
-      //     timeout: 30000,
-      //     buttonOffset: new AMap.Pixel(10, 170),
-      //     zoomToAccuracy: true,     
-      //     buttonPosition: 'RB',
-      //     showCircle: false,
-      //     useNative: true
-      //   });
-      //   this.map.addControl(geolocation);
+        //get current location
+        let geolocation = new AMap.Geolocation({
+          enableHighAccuracy: true,
+          timeout: 30000,
+          buttonOffset: new AMap.Pixel(10, 20),
+          zoomToAccuracy: true,     
+          buttonPosition: 'RB',
+          showCircle: false,
+          useNative: true
+        });
+        map.addControl(geolocation);
         
-      //   AMap.event.addListener(geolocation, 'complete', (result) => {
-      //     this.geoLocated(result);
-      //   });
-      //   AMap.event.addListener(geolocation, 'error', (err) => {
-      //     console.error(err);
-      //   })
-      //   if (!geolocation.isSupported()) {
-      //     console.error('Geo Location is not supported');
-      //   }
-
-      //   //auto-complete
-      //   let autoOptions = {
-      //     input: 'searchKey',
-      //     city: '北京',
-      //     citylimit: true 
-      //   };
-      //   this.map_autoComplete = new AMap.Autocomplete(autoOptions);        
-      //   AMap.event.addListener(this.map_autoComplete, 'select', (e) => {
-      //     console.log(`select search result: ${JSON.stringify(e)}`);
-      //     if (e && e.poi) {
-      //       this.searchKey = e.poi.name
-      //       this.map.setZoomAndCenter(15, e.poi.location);
-      //     }          
-      //   });
-      //   AMap.event.addListener(this.map_autoComplete, 'complete', (e) => {          
-      //   });
-      //   AMap.event.addListener(this.map_autoComplete, 'error', (e) => {
-      //     console.error(`Error when select search result: ${JSON.stringify(e)}`);
-      //   });
-
+        geolocation.on('complete', (result) => {
+          this.geoLocated(result);
+        });
+        geolocation.on('error', (err) => {
+          console.error(err);
+        });
+        if (!geolocation.isSupported()) {
+          console.error('Geo Location is not supported');
+        }
+      });
+      
       //   //search cities
       //   this.map_searchCity = new AMap.DistrictSearch({
       //     level: 'country',
@@ -687,7 +619,6 @@ export default {
       //   //load cities
       this.provinces = allcities;
         
-      // });
     }
   },
   mounted: function() {
