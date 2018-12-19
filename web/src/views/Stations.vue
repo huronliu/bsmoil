@@ -156,7 +156,8 @@
         </v-layout>
       </v-layout>
       <v-layout v-show="displayMode === 'map'">
-        <el-amap ref="map" vid="mapContainer" :amap-manager="amapManager" :center="mapCenter" :zoom="zoom" :plugin="plugin" :events="events" class="map">
+        <el-amap-search-box class="search-box" :search-option="mapSearchOption" :on-search-result="onMapSearchResult"></el-amap-search-box>
+        <el-amap ref="map" vid="mapContainer" :amap-manager="amapManager" :center="mapCenter" :zoom="mapZoom" :plugin="plugin" :events="mapEvents" class="map">
           <el-amap-marker v-for="(marker, index) in markers" 
             :position="marker.position" 
             :events="marker.events" 
@@ -164,6 +165,15 @@
             :draggable="marker.draggable" 
             :vid="index"
             v-bind:key="index">
+          </el-amap-marker>
+          <el-amap-marker  
+            :position="tempMarker.position" 
+            :events="tempMarker.events" 
+            :visible="tempMarker.visible" 
+            :draggable="tempMarker.draggable" 
+            animation="AMAP_ANIMATION_DROP"
+            clickable="true"
+            >
           </el-amap-marker>
         </el-amap>
         <v-menu
@@ -176,7 +186,7 @@
         >
           <v-list>
             <v-list-tile>
-              <v-list-tile-title @click="showNewStationDialog=true">增加新基站</v-list-tile-title>
+              <v-list-tile-title @click="onAddNewStationClicked">增加新基站</v-list-tile-title>
             </v-list-tile>
             <v-divider></v-divider>
             <v-list-tile>
@@ -212,11 +222,8 @@
         </v-menu>
       </v-layout>
 
-      <edit-station is-new="true" :show-edit-dialog="showNewStationDialog"
-          :station="{}"
-          v-on:save="tempMenuSave" v-on:cancel="tempMenuCancel"></edit-station>
-      <edit-station is-new="false" :show-edit-dialog="showEditStationDialog"
-          :station="curStation? curStation.station : {}"
+      <edit-station :is-new="isAddNew" :show-edit-dialog="showEditStationDialog"
+          :station="curStation"
           v-on:save="onEditStationSave" v-on:cancel="onEditStationCancel"></edit-station>    
     </v-card>
   </v-container>
@@ -251,6 +258,7 @@ export default {
       cityDialog: false,
       stations: [], 
       curStation: null, 
+      isAddNew: false,
       newStation: {},
 
       //amap 
@@ -259,9 +267,9 @@ export default {
       map_autoComplete: null,
 
       amapManager,
-      zoom: 12,
+      mapZoom: 12,
       mapCenter: [116.397428, 39.90923],
-      events: {
+      mapEvents: {
         init: (o) => {
           console.log(o.getCenter())
           console.log(this.$refs.map.$$getInstance())
@@ -274,7 +282,34 @@ export default {
         'zoomchange': () => {
         },
         'click': (e) => {
+          if (this.map_temp_menu_show) {
+            this.map_temp_menu_show = false;
+          }
+          if (this.map_station_menu_show) {
+            this.map_station_menu_show = false;
+          }
           console.log("Map clicked");
+        },
+        'touchstart': (e) => {
+          this.map_touch_start = moment();
+          if (document.getElementById('searchKey') === document.activeElement) {
+            document.getElementById('searchKey').blur();
+          }
+        },
+        'touchmove': (e) => {
+          //this.map_touch_start = null;
+        },
+        'touchend': (e) => {        
+          if (this.map_touch_start) {          
+            let elapsed = moment().diff(this.map_touch_start);
+            console.log(`MAP Touch End @ ${JSON.stringify(e.lnglat)}`);
+            //if long touch over 2 seconds, we will need add a temp marker on the map
+            if (elapsed > 2000) {
+              console.log(`MAP Long touch on ${e.lnglat}`);
+              this.addTempMarker(e.lnglat);
+            }
+            this.map_touch_start = null;
+          }
         }
       },
       plugin: ['ToolBar', {
@@ -288,14 +323,32 @@ export default {
       }],
       mapStyle: "amap://styles/8c300aebf1b10327aa1e687d2fe8e654",
       markers: [],
+      tempMarker: //used for creating new station
+      {
+        position: [0, 0],
+        events: {
+          'click': (e) => {
+            this.map_temp_menu_x = e.pixel.getX();
+            this.map_temp_menu_y = e.pixel.getY();
+            this.map_temp_menu_show = true;      
+          }          
+        },
+        visible: false,
+        draggable: true
+      },
+
+      searchOption: {
+        city: '北京',
+        citylimit: true
+      },
 
       provinces: [],
       cities: [],
       curProvince: null,
       curCity: null,
-
+      
       map_touch_start: null, //record the time when user start touch on map
-      map_temp_marker: null, //used for creating new station
+      
       map_temp_menu_ready: false, //used for checking whether should show the menu of temp marker 
       map_temp_menu_show: false,
       map_temp_menu_x: 0,
@@ -334,13 +387,14 @@ export default {
     applyCity() {
       this.cityDialog = false;
       if (this.curCity) {
-        this.map.setZoomAndCenter(10, this.curCity.center);
+        this.mapZoom = 11;
+        this.mapCenter = this.curCity.center;
         if (this.curCity.citycode) {
           this.map_autoComplete.setCity(this.curCity.citycode);
           this.map_autoComplete.setCityLimit(true);
         }        
       }
-    },    
+    },        
     selectCity() {
       this.cityDialog = true;
     },
@@ -349,6 +403,24 @@ export default {
       if (this.curProvince) {
         this.cities = this.curProvince.districtList;
         this.curCity = this.cities[0];
+      }
+    },
+
+    onMapSearchResult(pois) {
+      let latSum = 0;
+      let lngSum = 0;
+      if (pois.length > 0) {
+        pois.forEach(poi => {
+          let {lng, lat} = poi;
+          lngSum += lng;
+          latSum += lat;
+          this.markers.push([poi.lng, poi.lat]);
+        });
+        let center = {
+          lng: lngSum / pois.length,
+          lat: latSum / pois.length
+        };
+        this.mapCenter = [center.lng, center.lat];
       }
     },
 
@@ -363,7 +435,8 @@ export default {
     //current geo location
     geoLocated(result) { 
       console.log(result);
-      this.map.getCity((cityinfo) => {
+      let map = this.amapManager.getMap();
+      map.getCity((cityinfo) => {
         if (cityinfo && cityinfo.city) {
           this.curCity = cityinfo.city;
         }
@@ -450,57 +523,22 @@ export default {
       return Math.sqrt( a*a + b*b );
     },
     addTempMarker(lnglat) {
-      let map = this.amapManager.getMap();
-      if (this.map_temp_marker) {
-        //if temp marker exist, we will move it
-        this.map_temp_marker.setPosition(lnglat);
-      } else {
-        this.map_temp_marker = new AMap.Marker({
-          map: map,
-          position: lnglat,
-          draggable: true,
-          animation: "AMAP_ANIMATION_DROP",
-          clickable: true
-        });
-        map.add(this.map_temp_marker);
-
-        this.map_temp_marker.on('click', (e) => {
-          //if (this.map_temp_menu_ready) {
-            this.map_temp_menu_x = e.pixel.getX();
-            this.map_temp_menu_y = e.pixel.getY();
-            this.map_temp_menu_show = true;            
-          //}
-        });
-      }
+      this.tempMarker.position = [lnglat.lng, lnglat.lat];
+      this.tempMarker.visible = true;      
     },
     tempMenuSave(station) {
-      let map = this.amapManager.getMap();
       this.showNewStationDialog = false;
-      console.log(station);
 
       let lnglat = this.map_temp_marker.getPosition();
-      map.remove(this.map_temp_marker);
-      map_temp_marker = null;
+      this.tempMarker.visible = false;
       
-      this.addNewStation(station, lnglat);
-            
-      this.stations.forEach(st => {
-        console.log(JSON.stringify({
-          id: st.station.id, title: st.station.title, level: st.station.level, 
-          position: st.marker.getPosition()
-        }));
-      })
-      
+      this.addNewStation(station, lnglat);            
     },
     tempMenuCancel() {
       this.showNewStationDialog = false;
     },
     cancelTempMarker() {
-      let map = this.amapManager.getMap();
-      if (this.map_temp_marker) {
-        map.remove(this.map_temp_marker);
-        map_temp_marker = null;
-      }
+      this.tempMarker.visible = false;
     },
 
     //edit station
@@ -512,6 +550,10 @@ export default {
     },
     onEditStationCancel() {
       this.showEditStationDialog = false;
+    },
+    onAddNewStationClicked() {
+      this.curStation = {};
+      this.showEditStationDialog = true;
     },
 
     //load stations from server
@@ -643,7 +685,7 @@ export default {
       //   });
 
       //   //load cities
-      //   this.provinces = allcities;
+      this.provinces = allcities;
         
       // });
     }
@@ -659,6 +701,11 @@ export default {
 </script>
 
 <style scoped>
+.search-box {
+  position: absolute;
+  top: 25px;
+  left: 20px;
+}
 .container {
   padding-left: 0;
   padding-right: 0;
