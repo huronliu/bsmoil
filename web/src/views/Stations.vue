@@ -88,8 +88,54 @@
           <v-btn slot="activator" icon style="font-size:18px">
             <v-icon light>filter_list</v-icon>
           </v-btn>
-          <v-card class="elevation-20">           
-            
+          <v-card class="elevation-20">
+            <v-card-text style="height: 300px; padding: 12px 0 0 0;">
+              <v-layout row justify-space-between wrap >
+                <v-flex xs12 sm12 pa-3>
+                  <v-text-field
+                    v-model="filter.id"
+                    hide-details
+                    label="基站ID"
+                    type="number"
+                    maxlength="16"
+                  ></v-text-field>
+                </v-flex>
+                <v-flex xs12 sm12 pa-3>
+                  <v-text-field
+                    v-model="filter.title"
+                    hide-details
+                    label="基站名称"
+                    type="number"
+                    maxlength="16"
+                  ></v-text-field>
+                </v-flex>
+                <v-flex xs12 sm12 pa-3>
+                  <v-select
+                      v-model="filter.levels"
+                      clearable
+                      chips
+                      small-chips
+                      single-line
+                      multiple
+                      hide-details
+                      :items="stLevels"
+                    >
+                      <template slot="selection" slot-scope="{ item, index }">
+                        <v-chip small v-if="index === 0">
+                          <span>{{ item }}</span>
+                        </v-chip>
+                        <v-chip small v-if="index === 1">
+                          <span>{{ item }}</span>
+                        </v-chip>
+                        <span
+                          v-if="index === 2"
+                          class="grey--text caption"
+                        >+{{ filter.levels.length - 1 }}</span>
+                      </template>
+                    </v-select>
+                </v-flex>
+              </v-layout>
+            </v-card-text>
             <v-spacer></v-spacer>
             <v-divider></v-divider>
             <v-card-actions>
@@ -199,7 +245,7 @@
         >
           <v-list>
             <v-list-tile>
-              <v-list-tile-title @click="onEditStationMenuClicked">查看基站详细信息</v-list-tile-title>
+              <v-list-tile-title @click="onViewStationMenuClicked">查看基站数据</v-list-tile-title>
             </v-list-tile>
             <v-divider></v-divider>
             <v-list-tile>
@@ -225,7 +271,6 @@
 </template>
 
 <script>
-import _ from "lodash";
 import moment from 'moment';
 import allcities from '../config/cities.json';
 import demostations from '../config/stations.json';
@@ -245,6 +290,7 @@ export default {
       displayMode: "map",
       searchKey: "",
       city: '北京',
+      filter: {},
 
       refreshFlag: true,
       refreshInterval: 15,
@@ -254,7 +300,7 @@ export default {
       cityDialog: false,
       stations: [], 
       curStation: null, 
-      isAddNew: false,
+      stLevels: [1, 2, 3, 4, 5],
       
       //amap 
       // map: null,
@@ -384,7 +430,7 @@ export default {
       this.cityDialog = false;
       if (this.curCity) {
         this.mapZoom = 11;
-        this.mapCenter = this.curCity.center;
+        this.mapCenter = [this.curCity.center.lng, this.curCity.center.lat];
         if (this.curCity.citycode) {
           this.map_autoComplete.setCity(this.curCity.citycode);
           this.map_autoComplete.setCityLimit(true);
@@ -526,6 +572,9 @@ export default {
     onAddNewStationClicked() {
       this.curStation = {};
       this.showEditStationDialog = true;
+    },
+    onViewStationMenuClicked() {
+      this.showDetail(this.curStation);
     },
 
     //load stations from server

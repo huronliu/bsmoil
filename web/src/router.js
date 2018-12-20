@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Router from "vue-router";
 import Stations from "./views/Stations";
+import StationDetail from "./views/StationDetail";
 import Temp from "./views/Temp";
 
 Vue.use(Router);
@@ -37,7 +38,7 @@ export default new Router({
     {
       path: "/stationdetail",
       name: "stationDetail",
-      component: Temp,
+      component: StationDetail,
       meta: {
         requireAuth: true,
         roles: []
