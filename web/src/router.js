@@ -2,6 +2,9 @@ import Vue from "vue";
 import Router from "vue-router";
 import Stations from "./views/Stations";
 import StationDetail from "./views/StationDetail";
+import Warns from "./views/Warns";
+import WarnDetail from "./views/WarnDetail";
+import WarnsHistory from "./views/WarnsHistory";
 import Temp from "./views/Temp";
 
 Vue.use(Router);
@@ -46,13 +49,33 @@ export default new Router({
       props: true
     },
     {
-      path: "/alerts",
-      name: "alerts",
-      component: Temp,
+      path: "/warns",
+      name: "warns",
+      component: Warns,
       meta: {
         requireAuth: true,
         roles: []
       }
+    },
+    {
+      path: "/warndetail",
+      name: "warnDetail",
+      component: WarnDetail,
+      meta: {
+        requireAuth: true, 
+        roles: []
+      },
+      props: true
+    },
+    {
+      path: "/warnshistory",
+      name: "warnsHistory",
+      component: WarnsHistory,
+      meta: {
+        requireAuth: true, 
+        roles: []
+      },
+      props: true
     },
     {
       path: "/admin",
@@ -64,8 +87,8 @@ export default new Router({
       }
     },
     {
-      path: "/admin/config",
-      name: "admin/config",
+      path: "/config",
+      name: "/config",
       component: Temp,
       meta: {
         requireAuth: true,

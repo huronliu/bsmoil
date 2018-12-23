@@ -119,6 +119,7 @@
                       multiple
                       hide-details
                       :items="stLevels"
+                      label="基站级别"
                     >
                       <template slot="selection" slot-scope="{ item, index }">
                         <v-chip small v-if="index === 0">
@@ -164,7 +165,7 @@
                   class="stationItem"
                 >
                   <v-list-tile-avatar>
-                    <v-icon v-if="st.warns > 0" color="red">alert</v-icon>
+                    <v-icon v-if="st.warns > 0" color="red">priority_high</v-icon>
                   </v-list-tile-avatar>
                   
                   <v-list-tile-content>
@@ -179,9 +180,9 @@
 
                   <v-list-tile-action>
                     <v-btn icon ripple>
-                      <v-icon color="grey lighten-1">info</v-icon>
+                      <v-icon small>navigate_next</v-icon>
                     </v-btn>
-                  </v-list-tile-action>                  
+                  </v-list-tile-action>                     
                 </v-list-tile>
                 <v-divider v-if="index + 1 < stations.length" :key="`divider-${index}`"></v-divider>
               </template>  
@@ -257,7 +258,7 @@
             </v-list-tile>
             <v-divider></v-divider>
             <v-list-tile>
-              <v-list-tile-title @click="onEditStationMenuClicked">删除基站位置</v-list-tile-title>
+              <v-list-tile-title @click="onAddCommentMenuClicked">增加备注</v-list-tile-title>
             </v-list-tile>
           </v-list>
         </v-menu>
@@ -265,7 +266,30 @@
 
       <edit-station :is-new="isAddNew" :show-edit-dialog="showEditStationDialog"
           :station="curStation"
-          v-on:save="onEditStationSave" v-on:cancel="onEditStationCancel"></edit-station>    
+          v-on:save="onEditStationSave" v-on:cancel="onEditStationCancel"></edit-station> 
+      <v-dialog v-model="showAddCommentDialog" 
+        scrollable persistent 
+        height="250px" max-width="85vw" style="z-index: 999">
+        <v-card class="elevation-20 ">
+          <v-card-title
+              primary-title
+            >
+              增加备注
+            </v-card-title>
+          <v-card-text style="">            
+                  <v-textarea v-model="newComment"
+                    label="备注"
+                  ></v-textarea>
+          </v-card-text>
+          <v-divider></v-divider>   
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn flat @click="addCommentCancel">取消</v-btn>
+            <v-btn color="primary" flat @click="addCommentSave">保存</v-btn>
+          </v-card-actions>
+        </v-card>
+        <v-spacer></v-spacer>
+      </v-dialog>   
     </v-card>
   </v-container>
 </template>
@@ -302,6 +326,8 @@ export default {
       curStation: null, 
       stLevels: [1, 2, 3, 4, 5],
       
+      isAddNew: false,
+      newComment: null,
       //amap 
       // map: null,
       map_searchCity: null,
@@ -400,7 +426,8 @@ export default {
       map_station_menu_y: 0,
 
       showNewStationDialog: false,
-      showEditStationDialog: false
+      showEditStationDialog: false,
+      showAddCommentDialog: false
     };
   },
   computed: {
@@ -561,6 +588,7 @@ export default {
 
     //edit station
     onEditStationMenuClicked() {
+      this.map_station_menu_show = false;
       this.showEditStationDialog = true;
     },
     onEditStationSave() {
@@ -574,7 +602,12 @@ export default {
       this.showEditStationDialog = true;
     },
     onViewStationMenuClicked() {
+      this.map_station_menu_show = false;
       this.showDetail(this.curStation);
+    },
+    onAddCommentMenuClicked() {
+      this.map_station_menu_show = false;
+      this.showAddCommentDialog = true;
     },
 
     //load stations from server
@@ -668,6 +701,19 @@ export default {
       //   //load cities
       this.provinces = allcities;
         
+    },
+
+    addCommentCancel() {
+      this.showAddCommentDialog = false;
+      this.newComment = "";
+    },
+    addCommentSave() {
+      this.showAddCommentDialog = false;
+      this.curStation.comments.push({
+        comment: this.newComment,
+        user: "xiaodong"
+      });
+      this.newComment = "";
     }
   },
   mounted: function() {
