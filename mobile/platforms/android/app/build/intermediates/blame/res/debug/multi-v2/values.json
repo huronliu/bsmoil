@@ -6,18 +6,18 @@
                 {
                     "source": "D:\\documents\\FLY\\BSM\\src\\mobile\\platforms\\android\\app\\src\\main\\res\\values\\strings.xml",
                     "from": {
-                        "startLines": "4,2,3",
-                        "startColumns": "4,4,4",
-                        "startOffsets": "170,55,111",
-                        "endColumns": "63,55,58",
-                        "endOffsets": "229,106,165"
+                        "startLines": "-1,-1,3",
+                        "startColumns": "-1,-1,4",
+                        "startOffsets": "-1,-1,97",
+                        "endColumns": "-1,-1,46",
+                        "endOffsets": "-1,-1,139"
                     },
                     "to": {
                         "startLines": "2,3,4",
                         "startColumns": "4,4,4",
-                        "startOffsets": "55,119,175",
-                        "endColumns": "63,55,58",
-                        "endOffsets": "114,170,229"
+                        "startOffsets": "55,119,161",
+                        "endColumns": "63,41,46",
+                        "endOffsets": "114,156,203"
                     }
                 }
             ]

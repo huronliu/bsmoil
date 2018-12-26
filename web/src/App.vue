@@ -5,7 +5,7 @@
         <router-view />
       </keep-alive>
     </v-content>
-    <mobile-footer v-show="footer"></mobile-footer>
+    <mobile-footer :navs="navs"  v-show="footer"></mobile-footer>
     <v-dialog v-model="loading" hide-overlay persistent fullscreen>
       <v-card height="92" min-height="92" class="loading">
         <v-card-text class="loading-progress">
@@ -32,14 +32,19 @@ export default {
   name: "App",
   data() {
     return {
-      title: "基站监控",
+      title: "铁塔测量",
       loading: false,
       snackbar: {
         display: false,
         text: null,
         timeout: 5000
-      }
-      
+      },
+      allNavs: [
+        { title: "基站", to: { path: "/stations" }, icon: "list_alt", flags: 0, roleFlag: 1 },
+        { title: "报警", to: { path: "/warns" }, icon: "notification_important", flags: 5, roleFlag: 1 },
+        { title: "配置", to: { path: "/config" }, icon: "settings", flags: 0, roleFlag: 1 },
+        { title: "我", to: { path: "/me" }, icon: "account_box", flags: 0, roleFlag: 1 }
+      ]
     };
   },
   computed: {

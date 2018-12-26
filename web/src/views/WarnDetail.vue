@@ -13,6 +13,9 @@
       <v-layout align-center >
         <v-flex>
           <v-list dense class="pl-3 pr-3">
+            <v-subheader>
+              站点信息
+            </v-subheader>
             <v-list-tile>
               <v-list-tile-content>
                 <span class="font-weight-bold">
@@ -49,6 +52,9 @@
       <v-layout align-center>
         <v-flex>
           <v-list dense class="pl-3 pr-3">
+            <v-subheader>
+              报警信息
+            </v-subheader>
             <v-list-tile>
               <v-list-tile-content>报警类型</v-list-tile-content>
               <v-list-tile-content class="item_value"
@@ -65,22 +71,71 @@
         </v-flex>
       </v-layout>
     </v-card>
+
+    <!-- resolution -->
+    <v-card v-if="!error && warn.resolve" class="mb-2">
+      <v-layout align-center>
+        <v-flex>
+          <v-list dense three-line class="pl-3 pr-3">
+            <v-subheader>
+              解决结果
+            </v-subheader>
+            <v-list-tile>
+              <v-list-tile-content>
+                <v-list-tile-title>
+                  {{ warn.resolve.resolution }}
+                </v-list-tile-title>
+                <v-list-tile-sub-title>
+                  {{ warn.resolve.user }}   
+                </v-list-tile-sub-title>
+              </v-list-tile-content>
+              <v-list-tile-content>
+                <v-list-tile-sub-title>
+                  {{ warn.resolve.time }}
+                </v-list-tile-sub-title>
+              </v-list-tile-content>
+            </v-list-tile>          
+          </v-list>
+        </v-flex>
+      </v-layout>
+    </v-card>
     
     <!-- action buttons -->
-    <v-layout align-center justify-center v-if="!error">
-      <v-flex>
-        <div class="text-xs-center">
-          <v-btn color="primary" class="white--text" @click.native="gotoMap">
-            已解决
-            <v-icon right dark>done_outline</v-icon>
-          </v-btn>
-          <v-btn color="primary" class="white--text" @click.native="gotoWarnsHistory">
-            查看历史记录
-            <v-icon right dark>history</v-icon>
-          </v-btn>          
-        </div>
-      </v-flex>
-    </v-layout>
+    <v-card v-if="!error" class="mb-2">
+      <v-layout align-center justify-center >
+        <v-flex>
+          <div class="text-xs-center">
+            <v-btn color="blue-grey" dark round @click.native="showResolution = !showResolution">
+              解决
+              <v-icon right dark>done_outline</v-icon>
+            </v-btn>
+            <v-btn color="blue-grey" dark round @click.native="gotoWarnsHistory">
+              查看历史记录
+              <v-icon right dark>history</v-icon>
+            </v-btn>          
+          </div>
+        </v-flex>
+      </v-layout>
+    </v-card>
+
+    <v-card v-if="!error && showResolution" class="mb-2">
+      <v-layout align-center class="pa-3" wrap>
+        <v-flex xs12>
+          <v-list dense class="pl-3 pr-3">            
+            <v-list-tile>
+              <v-list-tile-content>
+                <v-textarea name="txtresolution" label="请输入解决结果及方案" v-model="resolution"></v-textarea>
+              </v-list-tile-content>
+            </v-list-tile>
+            <v-list-tile>
+              <v-list-tile-content>
+                <v-btn round color="blue-grey" dark @click="submitResolution">提交</v-btn>
+              </v-list-tile-content>
+            </v-list-tile>
+          </v-list>          
+        </v-flex>
+      </v-layout>
+    </v-card>
 
     <v-card v-if="error" height="100%">
       <v-card-title primary-title>
@@ -103,7 +158,9 @@ export default {
   props: ['warn'],
   data() {
     return {
-      error: null
+      error: null,
+      showResolution: false,
+      resolution: null
     };
   },
   computed: {
@@ -125,6 +182,14 @@ export default {
       this.error = null;
       this.$utils.showLoading();
       this.$utils.hideLoading();
+    },
+    submitResolution() {
+      this.showResolution = false;
+      this.warn.resolve = {
+        resolution: this.resolution,
+        user: "xiaodong",
+        time: new Date()
+      }
     }
   },
   watch: {},

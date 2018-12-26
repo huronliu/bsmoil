@@ -48,7 +48,7 @@
 
 <script>
 export default {
-  name: 'EditStationDialog',
+  name: 'EditStation',
   props: {
     showEditDialog: false,
     isNew: true,

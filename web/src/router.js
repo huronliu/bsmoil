@@ -5,6 +5,7 @@ import StationDetail from "./views/StationDetail";
 import Warns from "./views/Warns";
 import WarnDetail from "./views/WarnDetail";
 import WarnsHistory from "./views/WarnsHistory";
+import Me from "./views/Me";
 import Temp from "./views/Temp";
 
 Vue.use(Router);
@@ -23,7 +24,7 @@ export default new Router({
     {
       path: "/",
       name: "home",
-      component: Stations,
+      redirect: { name: "stations" },
       meta: {
         requireAuth: true,
         roles: []
@@ -98,7 +99,7 @@ export default new Router({
     {
       path: "/me",
       name: "me",
-      component: Temp,
+      component: Me,
       meta: {
         requireAuth: true,
         roles: []

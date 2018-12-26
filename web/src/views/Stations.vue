@@ -151,13 +151,13 @@
       </v-toolbar>
       <v-layout row wrap justify-center align-center v-show="displayMode !== 'map'">
         <v-flex xs12>
-          <v-layout v-show="this.stations.length === 0" justify-center>
+          <v-layout v-show="this.displayStations.length === 0" justify-center>
             <p class="headline mt-5">没有数据</p>
           </v-layout>
         </v-flex>
         <v-flex xs12>
-            <v-list two-line>
-              <template v-for="(st, index) in stations">
+            <v-list two-line dense>
+              <template v-for="(st, index) in displayStations">
                 <v-list-tile                  
                   :key="st.id"
                   avatar
@@ -165,7 +165,9 @@
                   class="stationItem"
                 >
                   <v-list-tile-avatar>
-                    <v-icon v-if="st.warns > 0" color="red">priority_high</v-icon>
+                    <v-avatar class="red" v-if="st.warns > 0" small size="20">
+                      <span class="white--text font-weight-thin caption">{{st.warns}}</span>  
+                    </v-avatar>
                   </v-list-tile-avatar>
                   
                   <v-list-tile-content>
@@ -316,14 +318,17 @@ export default {
       city: '北京',
       filter: {},
 
+      stations: [], 
+      displayStations: [],
+      curStation: {}, 
+
       refreshFlag: true,
       refreshInterval: 15,
       pageSize: 30,
 
       filterMenu: false,
       cityDialog: false,
-      stations: [], 
-      curStation: null, 
+      
       stLevels: [1, 2, 3, 4, 5],
       
       isAddNew: false,
@@ -338,10 +343,9 @@ export default {
       mapCenter: [116.397428, 39.90923],
       mapEvents: {
         init: (o) => {
-          console.log(o.getCenter())
-          console.log(this.$refs.map.$$getInstance())
+          console.log(`AMap initialized: ${o.getCenter()}`);
           o.getCity(result => {
-            console.log(result)
+            console.log(`Current city is ${JSON.stringify(result)}`);
           })
         },
         'moveend': () => {
@@ -355,7 +359,6 @@ export default {
           if (this.map_station_menu_show) {
             this.map_station_menu_show = false;
           }
-          console.log("Map clicked");
         },
         'touchstart': (e) => {
           this.map_touch_start = moment();
@@ -364,33 +367,23 @@ export default {
           }
         },
         'touchmove': (e) => {
-          //this.map_touch_start = null;
+          this.map_touch_start = null;
         },
         'touchend': (e) => {        
           if (this.map_touch_start) {          
             let elapsed = moment().diff(this.map_touch_start);
+            this.map_touch_start = null;
             console.log(`MAP Touch End @ ${JSON.stringify(e.lnglat)}`);
             //if long touch over 2 seconds, we will need add a temp marker on the map
             if (elapsed > 2000) {
-              console.log(`MAP Long touch on ${e.lnglat}`);
               this.addTempMarker(e.lnglat);
-            }
-            this.map_touch_start = null;
+            }            
           }
         }
       },
-      mapPlugins: [
-        'ToolBar', {
-          pName: 'MapType',
-          defaultType: 0,
-          events: {
-            init(o) {
-              console.log(o);
-            }
-          }
-        }
-      ],
+      mapPlugins: [],
       mapStyle: "amap://styles/8c300aebf1b10327aa1e687d2fe8e654",
+
       markers: [],
       tempMarker: //used for creating new station
       {
@@ -418,22 +411,22 @@ export default {
       
       map_touch_start: null, //record the time when user start touch on map      
       map_temp_menu_ready: false, //used for checking whether should show the menu of temp marker 
-      map_temp_menu_show: false,
-      map_temp_menu_x: 0,
-      map_temp_menu_y: 0,
-      map_station_menu_show: false, //show menu of station marker
-      map_station_menu_x: 0,
-      map_station_menu_y: 0,
+      map_temp_menu_show: false, //whether show the temp maker menu
+      map_temp_menu_x: 0, //x position of the temp marker menu
+      map_temp_menu_y: 0, //y position of the temp marker menu
+      map_station_menu_show: false, //whether show menu of station marker
+      map_station_menu_x: 0, //x position of the station menu
+      map_station_menu_y: 0, //y position of the station menu
 
-      showNewStationDialog: false,
-      showEditStationDialog: false,
-      showAddCommentDialog: false
+      showNewStationDialog: false, //whether show the New Station dialog
+      showEditStationDialog: false,//Whether show the Edit station dialog
+      showAddCommentDialog: false  //Whether show the Add Comment dialog
     };
   },
   computed: {
     hasMoreData: {
       get() {
-        return true;
+        return this.stations.length > this.displayStations.length;
       }
     },
     pageTitle: {
@@ -441,7 +434,7 @@ export default {
         if (this.curCity) {
           this.city = this.curCity.name;
         }
-        return '基站 - ' + this.city;
+        return `基站 - [${this.city}]`;
       }
     }
   },
@@ -452,7 +445,7 @@ export default {
       console.log(`display mode changed to ${this.displayMode}`);
     },
 
-    //search city
+    //select another city
     applyCity() {
       this.cityDialog = false;
       if (this.curCity) {
@@ -464,34 +457,17 @@ export default {
         }        
       }
     },        
-    selectCity() {
+    selectCity() { //show the select city dialog
       this.cityDialog = true;
     },
-    changeProvince() {
+    changeProvince() { //select another province
       this.cities = [];
       if (this.curProvince) {
         this.cities = this.curProvince.districtList;
         this.curCity = this.cities[0];
       }
     },
-
-    onMapSearchResult(pois) {
-      let latSum = 0;
-      let lngSum = 0;
-      if (pois.length > 0) {
-        pois.forEach(poi => {
-          let {lng, lat} = poi;
-          lngSum += lng;
-          latSum += lat;
-          this.markers.push([poi.lng, poi.lat]);
-        });
-        let center = {
-          lng: lngSum / pois.length,
-          lat: latSum / pois.length
-        };
-        this.mapCenter = [center.lng, center.lat];
-      }
-    },
+  
 
     //filter menu
     filterCancelClick() {
@@ -501,7 +477,7 @@ export default {
       this.filterMenu = false;
     },
 
-    //current geo location
+    //navigate to the current geo location
     geoLocated(result) { 
       console.log(result);
       let map = this.amapManager.getMap();
@@ -528,16 +504,20 @@ export default {
     },
     showFirstPage() {
       if (this.stations.length <= this.pageSize) {
-        this.stations = this.stations;
+        this.displayStations = this.stations;
       } else {
-        this.stations = this.stations.slice(0, this.pageSize);
+        this.displayStations = this.stations.slice(0, this.pageSize);
       }
     },
     showMore() {
-      this.$utils.toast("没有更多");
+      if (this.hasMoreData) {
+        this.displayStations.push(this.stations.slice(this.displayStations.length, this.pageSize));
+      } else {
+        this.$utils.toast("没有更多");
+      }      
     },
 
-    //add new station
+    //add new station on the map
     addNewStation(station, lnglat) {
       let self = this;
 
@@ -549,7 +529,6 @@ export default {
             self.map_station_menu_y = e.pixel.getY();
             self.curStation = station;
             self.map_station_menu_show = true;
-            console.log("Station Marker TOUCH END: " + e.pixel);
           },
           dragend: (e) => {
             console.log('---event---: dragend');
@@ -562,21 +541,24 @@ export default {
       });
       this.stations.push(station);
     },
+
     calcDist(x1, y1, x2, y2) {
       let a = x2 - x1;
       let b = y2 - y1;
       return Math.sqrt( a*a + b*b );
     },
+
+    //Add or move the temp marker on map
     addTempMarker(lnglat) {
       this.tempMarker.position = [lnglat.lng, lnglat.lat];
       this.tempMarker.visible = true;      
     },
+
+    //when click the Save on the Add New Station dialog
     tempMenuSave(station) {
       this.showNewStationDialog = false;
-
       let lnglat = this.map_temp_marker.getPosition();
-      this.tempMarker.visible = false;
-      
+      this.tempMarker.visible = false;      
       this.addNewStation(station, lnglat);            
     },
     tempMenuCancel() {
@@ -584,6 +566,10 @@ export default {
     },
     cancelTempMarker() {
       this.tempMarker.visible = false;
+    },
+    onAddNewStationClicked() {
+      this.curStation = {};
+      this.showEditStationDialog = true;
     },
 
     //edit station
@@ -597,17 +583,27 @@ export default {
     onEditStationCancel() {
       this.showEditStationDialog = false;
     },
-    onAddNewStationClicked() {
-      this.curStation = {};
-      this.showEditStationDialog = true;
-    },
+    //click the View Station data on menu
     onViewStationMenuClicked() {
       this.map_station_menu_show = false;
       this.showDetail(this.curStation);
     },
+    //click the Add Comment on menu
     onAddCommentMenuClicked() {
       this.map_station_menu_show = false;
       this.showAddCommentDialog = true;
+    },
+    addCommentCancel() {
+      this.showAddCommentDialog = false;
+      this.newComment = "";
+    },
+    addCommentSave() {
+      this.showAddCommentDialog = false;
+      this.curStation.comments.push({
+        comment: this.newComment,
+        user: "xiaodong"
+      });
+      this.newComment = "";
     },
 
     //load stations from server
@@ -618,6 +614,7 @@ export default {
         this.addNewStation(ds, ds.position);
       });
       this.$utils.hideLoading();
+      this.showFirstPage();
       // this.$http
       //   .get("/api/stations/list")
       //   .then(result => {
@@ -701,20 +698,7 @@ export default {
       //   //load cities
       this.provinces = allcities;
         
-    },
-
-    addCommentCancel() {
-      this.showAddCommentDialog = false;
-      this.newComment = "";
-    },
-    addCommentSave() {
-      this.showAddCommentDialog = false;
-      this.curStation.comments.push({
-        comment: this.newComment,
-        user: "xiaodong"
-      });
-      this.newComment = "";
-    }
+    },    
   },
   mounted: function() {
     this.initMap();

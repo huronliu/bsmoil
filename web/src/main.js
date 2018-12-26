@@ -8,6 +8,7 @@ import store from './store'
 import router from './router';
 import Footer from './components/Footer';
 import Header from './components/Header';
+import EditStation from './components/EditStation';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import utils from './modules/utils';
 import axios from 'axios';
@@ -15,7 +16,7 @@ import axios from 'axios';
 Vue.use(VueAMap);
 VueAMap.initAMapApiLoader({
   key: '7292a679221c51cf812a9552a75f5573',
-  plugin: ['Geolocation', 'Autocomplete', 'DistrictSearch', 'ToolBar'],
+  plugin: ['Geolocation', 'Autocomplete'],
   // 默认高德 sdk 版本为 1.4.4
   v: '1.4.4'
 });
@@ -23,6 +24,7 @@ VueAMap.initAMapApiLoader({
 Vue.config.productionTip = false
 Vue.component('mobile-footer', Footer);
 Vue.component('mobile-header', Header);
+Vue.component('edit-station', EditStation);
 
 const eventBus = new Vue();
 Object.defineProperties(Vue.prototype, {

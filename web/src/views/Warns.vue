@@ -88,7 +88,7 @@
           </v-layout>
         </v-flex>
         <v-flex xs12>
-            <v-list two-line>
+            <v-list two-line dense>
               <template v-for="(warn, index) in warns">
                 <v-list-tile                  
                   :key="warn.id"

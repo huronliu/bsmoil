@@ -1,14 +1,20 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.fly.basestation.monitor" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-packageName="com.fly.basestation.monitor" id="com.fly.basestation.monitor" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <feature name="Whitelist">
         <param name="android-package" value="org.apache.cordova.whitelist.WhitelistPlugin" />
         <param name="onload" value="true" />
     </feature>
-    <name>BaseStationMonitor</name>
+    <feature name="NativeStorage">
+        <param name="android-package" value="NativeStorage" />
+    </feature>
+    <feature name="Geolocation">
+        <param name="android-package" value="org.apache.cordova.geolocation.Geolocation" />
+    </feature>
+    <name short="铁塔测量">铁塔测量</name>
     <description>
         本APP用来检测基站的环境数据，包括倾斜角度，温湿度，消防火情等，并推送报警消息
     </description>
-    <author email="support@fly.com" href="http://www.fly.com">
+    <author email="support@fly.com" href="http://www.fly1992.com/">
         Leo Liang
     </author>
     <content src="index.html" />
@@ -19,6 +25,18 @@
     <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
+    <icon src="/res/icon/android/cell-tower-36.png" />
     <allow-intent href="market:*" />
+    <icon density="ldpi" src="/res/icon/android/cell_tower_36.png" />
+    <icon density="mdpi" src="/res/icon/android/cell_tower_48.png" />
+    <icon density="hdpi" src="/res/icon/android/cell_tower_72.png" />
+    <icon density="xhdpi" src="/res/icon/android/cell_tower_96.png" />
     <preference name="loglevel" value="DEBUG" />
+    <preference name="android-targetSdkVersion" value="27" />
+    <preference name="android-minSdkVersion" value="23" />
+    <preference name="KeepRunning" value="true" />
+    <preference name="LoadUrlTimeoutValue" value="30000" />
+    <preference name="LogLevel" value="DEBUG" />
+    <preference name="AndroidLaunchMode" value="singleTop" />
+    <preference name="AppendUserAgent" value="CordovaAndroid" />
 </widget>
