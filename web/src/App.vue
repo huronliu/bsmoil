@@ -74,19 +74,19 @@ export default {
     }
   },
   created: function() {
-    // this.$bus.$on("show-loading", () => {
-    //   this.loading = true;
-    // });
-    // this.$bus.$on("hide-loading", () => {
-    //   this.loading = false;
-    // });
-    // this.$bus.$on("toast", ({ text, timeout }) => {
-    //   this.snackbar = {
-    //     text: text,
-    //     timeout: timeout,
-    //     display: true
-    //   };
-    // });
+    this.$bus.$on("show-loading", () => {
+      this.loading = true;
+    });
+    this.$bus.$on("hide-loading", () => {
+      this.loading = false;
+    });
+    this.$bus.$on("toast", ({ text, timeout }) => {
+      this.snackbar = {
+        text: text,
+        timeout: timeout,
+        display: true
+      };
+    });
   },
   mounted: function() {
     if (window.cordova) {

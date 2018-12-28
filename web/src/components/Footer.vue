@@ -5,7 +5,7 @@
         <v-btn flat v-for="(nav, index) in navs" 
           v-bind:key="nav.title"
           v-bind:index="index"
-          :to="nav.to">
+          :to="nav.to" color="teal">
           <span class="caption font-weight-medium">{{nav.title}}</span>
           <v-badge color="red" v-model="nav.flags">
             <span slot="badge">{{nav.flags}}</span>

@@ -7,6 +7,7 @@ import WarnDetail from "./views/WarnDetail";
 import WarnsHistory from "./views/WarnsHistory";
 import Me from "./views/Me";
 import Temp from "./views/Temp";
+import Home from "./views/Home";
 
 Vue.use(Router);
 
@@ -24,7 +25,7 @@ export default new Router({
     {
       path: "/",
       name: "home",
-      redirect: { name: "stations" },
+      component: Home,
       meta: {
         requireAuth: true,
         roles: []
@@ -104,6 +105,7 @@ export default new Router({
         requireAuth: true,
         roles: []
       }
-    }
+    },
+    { path: '*', redirect: '/' }
   ]
 });
