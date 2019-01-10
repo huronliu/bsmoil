@@ -5,10 +5,16 @@
 </template>
 
 <script>
+import storage from '../modules/storage.js';
+
 export default {
   name: "Home",
   mounted() {
-    this.$router.replace("/stations");
+    if (storage.getAppStarted()) {
+      this.$router.replace("/stations");  
+    } else {
+      this.$router.replace("/start");
+    }    
   }
 }
 </script>

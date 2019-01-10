@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSM.DataServer", "BSM.DataServer\BSM.DataServer.csproj", "{9831ECE5-EB7B-46F4-A9CC-767638EA3557}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9831ECE5-EB7B-46F4-A9CC-767638EA3557}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9831ECE5-EB7B-46F4-A9CC-767638EA3557}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9831ECE5-EB7B-46F4-A9CC-767638EA3557}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9831ECE5-EB7B-46F4-A9CC-767638EA3557}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C802CB99-C45F-4A57-8919-A72D1D443C6C}
+	EndGlobalSection
+EndGlobal

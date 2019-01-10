@@ -8,6 +8,7 @@ import WarnsHistory from "./views/WarnsHistory";
 import Me from "./views/Me";
 import Temp from "./views/Temp";
 import Home from "./views/Home";
+import Startup from "./views/Startup";
 
 Vue.use(Router);
 
@@ -20,6 +21,14 @@ export default new Router({
       component: Temp,
       meta: {
         footer: false
+      }
+    },
+    {
+      path: "/start",
+      name: "start",
+      component: Startup,
+      meta: {
+        footer: false 
       }
     },
     {

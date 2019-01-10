@@ -6,5 +6,8 @@ module.exports = {
   baseUrl: "./",
   assetsDir: "assets",
   lintOnSave: process.env.NODE_ENV !== 'production',
-  productionSourceMap: true
+  productionSourceMap: true,
+  configureWebpack: {
+    
+  }
 };

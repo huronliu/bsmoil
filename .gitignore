@@ -5,3 +5,7 @@ mobile/platforms/
 mobile/www/
 *.bin
 *.bin
+service/BSMService/UdpServer/obj/
+service/BSMService/BSM.DataServer/obj/
+service/BSMService/BSM.DataServer/bin/
+service/BSMService/.vs/
