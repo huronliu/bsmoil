@@ -10,7 +10,14 @@ namespace BSM.DataServer
 {
     public class UdpServer
     {
-        private UdpClient udpListener; 
+        private UdpClient udpListener;
+        private IDatagramHandler handler;
+
+        public UdpServer()
+        {
+            handler = new BSMDataHandler();
+            Inited = false;
+        }
 
         public bool Inited
         {
@@ -52,8 +59,10 @@ namespace BSM.DataServer
                         var result = await udpListener.ReceiveAsync();
                         if (result != null)
                         {
-                            Log.Information("Received datagram from {0}: {1}", 
-                                result.RemoteEndPoint.ToString(), result.RemoteEndPoint.ToString());
+                            Task.Factory.StartNew(() =>
+                            {
+                                handler.Receive(result.RemoteEndPoint, result.Buffer);
+                            });
                         }
                     }
                 });

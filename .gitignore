@@ -9,3 +9,5 @@ service/BSMService/UdpServer/obj/
 service/BSMService/BSM.DataServer/obj/
 service/BSMService/BSM.DataServer/bin/
 service/BSMService/.vs/
+service/BSMService/BSM.Common/obj/
+service/BSMService/BSM.Common/bin/

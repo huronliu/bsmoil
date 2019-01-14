@@ -1,0 +1,84 @@
+﻿using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using BSM.Common.Model;
+
+namespace BSM.Common.DB
+{
+    public class BSMContext : DbContext 
+    {
+        public string DbConnection
+        {
+            get; private set;
+        }
+
+        public string DataSourceString => string.Format("{0} - {1}", this.Database.GetDbConnection().DataSource, this.Database.GetDbConnection().Database);
+
+        
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<Station> Stations { get; set; }
+
+        public DbSet<Coordinator> Coordinators { get; set; }
+
+        public DbSet<StationData> StationDatas { get; set; }
+
+        public DbSet<StationComment> StationComments { get; set; }
+
+        public DbSet<Alert> Alerts { get; set; }
+
+        public DbSet<UserPermission> UserPermissions { get; set; }
+
+
+        public BSMContext(string dbconnection)
+        {
+            this.DbConnection = dbconnection;
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer(this.DbConnection);            
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Station>()
+                .Property(st => st.Id)
+                .ValueGeneratedOnAdd();
+            modelBuilder.Entity<Station>()
+                .HasIndex(st => st.Tag);
+            modelBuilder.Entity<Station>()
+                .HasIndex(st => st.Name);
+            modelBuilder.Entity<Coordinator>()
+                .HasIndex(co => co.Name);
+
+            modelBuilder.Entity<StationData>()
+                .Property(d => d.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<StationComment>()
+                .Property(c => c.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Id)
+                .ValueGeneratedOnAdd();
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.LoginID)
+                .IsUnique(true);
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique(true);
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.MobilePhone)
+                .IsUnique(true);
+
+            modelBuilder.Entity<Alert>()
+                .Property(a => a.Id)
+                .ValueGeneratedOnAdd();
+        }
+    }
+}

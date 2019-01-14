@@ -4,7 +4,7 @@ using System.Text;
 using Serilog;
 using Serilog.Configuration;
 
-namespace BSM.DataServer
+namespace BSM.Common
 {
     public class Logging
     {

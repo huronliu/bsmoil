@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
+using Microsoft.EntityFrameworkCore.SqlServer;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Text;
 
@@ -24,7 +26,7 @@ namespace BSM.DataServer
         public static void ConfigServiceProvider()
         {
             IServiceCollection serviceCollection = new ServiceCollection();
-            
+                        
             _instance = serviceCollection.BuildServiceProvider();
 
         }
