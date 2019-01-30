@@ -38,13 +38,24 @@ namespace BSM.Common.DB
             this.DbConnection = dbconnection;
         }
 
+        public BSMContext()
+        { }
+
+        public BSMContext(DbContextOptions<BSMContext> options) 
+            : base(options)
+        { }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(this.DbConnection);            
+            if (!string.IsNullOrEmpty(this.DbConnection))
+            {
+                optionsBuilder.UseSqlServer(this.DbConnection);
+            }            
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            //Station
             modelBuilder.Entity<Station>()
                 .Property(st => st.Id)
                 .ValueGeneratedOnAdd();
@@ -52,17 +63,24 @@ namespace BSM.Common.DB
                 .HasIndex(st => st.Tag);
             modelBuilder.Entity<Station>()
                 .HasIndex(st => st.Name);
+
+            //Coordinator
+            modelBuilder.Entity<Coordinator>()
+                .HasKey(co => new { co.StationId, co.SeqId });
             modelBuilder.Entity<Coordinator>()
                 .HasIndex(co => co.Name);
 
+            //Station Data
             modelBuilder.Entity<StationData>()
                 .Property(d => d.Id)
                 .ValueGeneratedOnAdd();
 
+            //Station Comment
             modelBuilder.Entity<StationComment>()
                 .Property(c => c.Id)
                 .ValueGeneratedOnAdd();
 
+            //User
             modelBuilder.Entity<User>()
                 .Property(u => u.Id)
                 .ValueGeneratedOnAdd();
@@ -76,6 +94,7 @@ namespace BSM.Common.DB
                 .HasIndex(u => u.MobilePhone)
                 .IsUnique(true);
 
+            //Alert
             modelBuilder.Entity<Alert>()
                 .Property(a => a.Id)
                 .ValueGeneratedOnAdd();

@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSM.DataServer", "BSM.DataServer\BSM.DataServer.csproj", "{9831ECE5-EB7B-46F4-A9CC-767638EA3557}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSM.Common", "BSM.Common\BSM.Common.csproj", "{387B4828-E03F-449A-9CF5-5DFCABF0BF1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSM.Common", "BSM.Common\BSM.Common.csproj", "{387B4828-E03F-449A-9CF5-5DFCABF0BF1C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSM.Api", "BSM.Api\BSM.Api.csproj", "{B69A7767-AB64-45BE-A8A6-E7723E34F530}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{387B4828-E03F-449A-9CF5-5DFCABF0BF1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{387B4828-E03F-449A-9CF5-5DFCABF0BF1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{387B4828-E03F-449A-9CF5-5DFCABF0BF1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B69A7767-AB64-45BE-A8A6-E7723E34F530}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B69A7767-AB64-45BE-A8A6-E7723E34F530}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B69A7767-AB64-45BE-A8A6-E7723E34F530}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B69A7767-AB64-45BE-A8A6-E7723E34F530}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

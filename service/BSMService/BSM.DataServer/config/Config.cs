@@ -35,7 +35,7 @@ namespace BSM.DataServer
 
                 UdpHost = config["udpServer:host"]; 
                 UdpPort = int.Parse(config["udpServer:port"]);
-                DBConnection = config.GetConnectionString("BSMDB");
+                DBConnection = config.GetConnectionString("BSMDatabase");
             }
             catch(Exception ex)
             {

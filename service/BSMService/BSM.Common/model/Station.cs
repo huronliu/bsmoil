@@ -22,9 +22,11 @@ namespace BSM.Common.Model
         public string City { get; set; }
 
         public string Province { get; set; }
-        
-        public long? CreateBy { get; set; }
 
+        public bool Disabled { get; set; }
+
+        public long? CreateBy { get; set; }
+        
         [Required]
         public DateTime CreatedAt { get; set; }
 

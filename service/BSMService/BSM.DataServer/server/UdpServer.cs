@@ -26,10 +26,15 @@ namespace BSM.DataServer
 
         public bool Running
         {
-            get; set;
+            get; private set;
         }
 
-        public void init()
+        public void Stop()
+        {
+            this.Running = false;
+        }
+
+        public void Init()
         {            
             try
             {

@@ -13,9 +13,18 @@ namespace BSM.DataServer
         public static readonly byte HEADER_2 = 0x86;
         public static readonly byte TAIL_1 = 0x16;
 
+        private IDataProcessor dataProcessor;
+
+        public BSMDataHandler()
+        {
+            dataProcessor = new BSMDataProcessor();
+        }
+
         public Datagram ParseDatagram(byte[] bytes)
         {
             Datagram datagram = new Datagram();
+
+            datagram.Bytes = bytes;
 
             if (bytes == null || bytes.Length < 5)
             {
@@ -31,7 +40,11 @@ namespace BSM.DataServer
                 {
                     //Get data type
                     datagram.Type = bytes[4];
-                    if (datagram.Type == 1)
+                    if (datagram.Type == Datagram.TYPE_DATA ||
+                        datagram.Type == Datagram.TYPE_ADDR_SET_COMMIT || 
+                        datagram.Type == Datagram.TYPE_HEART_BEAT ||
+                        datagram.Type == Datagram.TYPE_REGISTER || 
+                        datagram.Type == Datagram.TYPE_TILT_RESET_COMMIT)
                     {
                         datagram.Data = new byte[datagram.Length - 2];
                         Array.Copy(bytes, 5, datagram.Data, 0, datagram.Length - 2);
@@ -48,18 +61,24 @@ namespace BSM.DataServer
                 datagram.State = DatagramState.InvalidHeader;
             }
 
-            if (datagram.State != DatagramState.OK)
-            {
-                Log.Error("Datagram with {0}: {1}", datagram.State.ToString("G"), BitConverter.ToString(bytes));
-            }
-            
             return datagram;
         }
 
         public void Receive(IPEndPoint remoteIp, byte[] bytes)
         {
-            var datagram = ParseDatagram(bytes);
-            Log.Debug("FROM {0}: {1}", remoteIp.ToString(), datagram.ToString());
+            try
+            {
+                var datagram = ParseDatagram(bytes);
+                datagram.From = remoteIp;
+                
+                Log.Debug("Datagram received from {0}: {1}", remoteIp.ToString(), datagram.ToString());
+
+                this.dataProcessor.Process(datagram);
+            } catch(Exception ex)
+            {
+                Log.Error(ex, "Error when receive datagram");
+            }
+            
         }
     }
 }

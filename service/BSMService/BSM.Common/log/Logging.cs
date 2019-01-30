@@ -13,7 +13,7 @@ namespace BSM.Common
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.Console()
-                .WriteTo.File("logs\\bsm-log.txt", Serilog.Events.LogEventLevel.Debug, fileSizeLimitBytes: 10485760)
+                .WriteTo.File("logs\\bsm-log.txt", Serilog.Events.LogEventLevel.Information, fileSizeLimitBytes: 10485760)
                 .CreateLogger();
         }
     }

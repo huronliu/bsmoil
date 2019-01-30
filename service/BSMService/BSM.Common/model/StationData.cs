@@ -12,7 +12,10 @@ namespace BSM.Common.Model
         public long Id { get; set; }
         
         [Required]
-        public string CoordAddr { get; set; }
+        public long StationId { get; set; }
+
+        [Required]
+        public int SeqId { get; set; }
 
         public byte[] Data { get; set; }
 
@@ -56,9 +59,6 @@ namespace BSM.Common.Model
         public byte? Tilt4_Y_Minute { get; set; }
         public byte? Tilt4_Y_Second { get; set; }
 
-        public DateTime ReceivedAt { get; set; }
-
-        [ForeignKey("CoordAddr")]
-        public Coordinator Coordinator { get; set; }
+        public DateTime? ReceivedAt { get; set; }
     }
 }

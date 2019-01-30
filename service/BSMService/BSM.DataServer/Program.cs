@@ -23,9 +23,10 @@ namespace BSM.DataServer
             }
 
             UdpServer udpserver = new UdpServer();
-            udpserver.init();
+            udpserver.Init();
             
             Console.ReadLine();
+            udpserver.Stop();
         }
     }
 }

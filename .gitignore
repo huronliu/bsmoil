@@ -11,3 +11,8 @@ service/BSMService/BSM.DataServer/bin/
 service/BSMService/.vs/
 service/BSMService/BSM.Common/obj/
 service/BSMService/BSM.Common/bin/
+service/.idea/
+service/BSMService/BSM.Api/bin/
+service/BSMService/BSM.Api/logs/
+service/BSMService/BSM.Api/obj/
+weex/
