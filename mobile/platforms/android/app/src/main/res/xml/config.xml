@@ -25,12 +25,12 @@
     <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
-    <icon src="/res/icon/android/cell-tower-36.png" />
+    <icon src="/res/icon/android/bsm_logo_36.png" />
     <allow-intent href="market:*" />
-    <icon density="ldpi" src="/res/icon/android/cell_tower_36.png" />
-    <icon density="mdpi" src="/res/icon/android/cell_tower_48.png" />
-    <icon density="hdpi" src="/res/icon/android/cell_tower_72.png" />
-    <icon density="xhdpi" src="/res/icon/android/cell_tower_96.png" />
+    <icon density="ldpi" src="/res/icon/android/bsm_logo_36.png" />
+    <icon density="mdpi" src="/res/icon/android/bsm_logo_48.png" />
+    <icon density="hdpi" src="/res/icon/android/bsm_logo_72.png" />
+    <icon density="xhdpi" src="/res/icon/android/bsm_logo_96.png" />
     <preference name="loglevel" value="DEBUG" />
     <preference name="android-targetSdkVersion" value="27" />
     <preference name="android-minSdkVersion" value="23" />

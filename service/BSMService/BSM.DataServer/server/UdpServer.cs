@@ -64,10 +64,7 @@ namespace BSM.DataServer
                         var result = await udpListener.ReceiveAsync();
                         if (result != null)
                         {
-                            Task.Factory.StartNew(() =>
-                            {
-                                handler.Receive(result.RemoteEndPoint, result.Buffer);
-                            });
+                            handler.Receive(result.RemoteEndPoint, result.Buffer).Start();                            
                         }
                     }
                 });

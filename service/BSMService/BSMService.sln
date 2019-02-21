@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSM.DataServer", "BSM.DataS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSM.Common", "BSM.Common\BSM.Common.csproj", "{387B4828-E03F-449A-9CF5-5DFCABF0BF1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BSM.Api", "BSM.Api\BSM.Api.csproj", "{B69A7767-AB64-45BE-A8A6-E7723E34F530}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSM.Api", "BSM.Api\BSM.Api.csproj", "{B69A7767-AB64-45BE-A8A6-E7723E34F530}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

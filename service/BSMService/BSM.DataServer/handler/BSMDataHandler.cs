@@ -64,7 +64,7 @@ namespace BSM.DataServer
             return datagram;
         }
 
-        public void Receive(IPEndPoint remoteIp, byte[] bytes)
+        public async Task Receive(IPEndPoint remoteIp, byte[] bytes)
         {
             try
             {
@@ -73,7 +73,7 @@ namespace BSM.DataServer
                 
                 Log.Debug("Datagram received from {0}: {1}", remoteIp.ToString(), datagram.ToString());
 
-                this.dataProcessor.Process(datagram);
+                await this.dataProcessor.Process(datagram);
             } catch(Exception ex)
             {
                 Log.Error(ex, "Error when receive datagram");

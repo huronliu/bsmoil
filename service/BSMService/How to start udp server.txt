@@ -1,0 +1,24 @@
+1. 安装 Visual Studio 2017 Community https://visualstudio.microsoft.com/downloads/ 
+2. 安装 .NET Core 2.2 https://dotnet.microsoft.com/download/visual-studio-sdks?utm_source=getdotnetsdk&utm_medium=referral 
+3. 用 VS2017打开 BSMService.sln 
+4. 在Solution Explorer里，右键点Solution节点，弹出菜单里点Restore NuGet Packages,等所有依赖的Package安装完毕
+5. Build项目BSM.DataServer
+6. 在SQL Server中创建一个空数据库BSM
+7. 编辑BSM.DataServer项目下的appsettings.json,可以更改数据库连接，以及UDP的端口号
+8. 现在可以运行项目BSM.DataServer，这时会启动Windows窗口显示UDP Server 初始化成功
+
+- 可以给这个端口发测试数据，接收到的数据会Log在Windows窗口中。
+- 此时的数据还不能写到数据库，因为在数据库里找不到相应地址的协调器
+	-- 需要先在数据库的Station表里添加基站信息
+	-- 再在Coordinator表里添加相应的协调器信息:
+		--- 此表中的StationId是刚创建的Station的Id
+		--- SeqId是1，2，3，4，代表该基站的第几个协调器
+		--- Address 字段就是协调器的地址，应该写为格式 10-0A-2B-80 这样，四个数值，每个是一个字节的16进制表示
+		
+		
+在BSM.DataServer项目中：
+- handler\BSMDataProcessor.cs 这里是具体分析接收到的上报数据并且写到数据库的逻辑
+- handler\BSMDataHandler.cs 这里是UDP服务器收到数据包以后，分解数据包并且检查是哪种类型的数据（上报数据，心跳数据还是注册数据）
+- \UdpServer.cs 这里是启动UDP服务器，并将收到的数据包转给BSMDataHandler
+
+

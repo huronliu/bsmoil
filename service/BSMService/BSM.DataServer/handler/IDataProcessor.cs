@@ -1,8 +1,10 @@
 ﻿
+using System.Threading.Tasks;
+
 namespace BSM.DataServer
 {
     interface IDataProcessor
     {
-        void Process(Datagram datagram);
+        Task Process(Datagram datagram);
     }
 }
