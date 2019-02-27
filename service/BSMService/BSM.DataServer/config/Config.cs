@@ -24,6 +24,16 @@ namespace BSM.DataServer
             get; private set;
         }
 
+        public static String WebSocketHost
+        {
+            get; private set;
+        }
+
+        public static int WebSocketPort
+        {
+            get; private set;
+        }
+
         
         public static void LoadAppSettings()
         {
@@ -36,6 +46,8 @@ namespace BSM.DataServer
                 UdpHost = config["udpServer:host"]; 
                 UdpPort = int.Parse(config["udpServer:port"]);
                 DBConnection = config.GetConnectionString("BSMDatabase");
+                WebSocketHost = config["websocket:host"];
+                WebSocketPort = int.Parse(config["websocket:port"]);
             }
             catch(Exception ex)
             {

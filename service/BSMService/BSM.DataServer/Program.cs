@@ -1,6 +1,7 @@
 ﻿using System;
 using BSM.Common;
 using BSM.Common.DB;
+using Microsoft.AspNetCore.Hosting;
 using Serilog;
 
 namespace BSM.DataServer
@@ -10,9 +11,7 @@ namespace BSM.DataServer
         static void Main(string[] args)
         {            
             Logging.ConfigureLogger();
-
-            Config.LoadAppSettings();
-            
+            Config.LoadAppSettings();            
             using(BSMContext context = new BSMContext(Config.DBConnection))
             {
                 if (context.Database.EnsureCreated())
@@ -24,7 +23,15 @@ namespace BSM.DataServer
 
             UdpServer udpserver = new UdpServer();
             udpserver.Init();
-            
+
+            var host = new WebHostBuilder()
+                        .UseKestrel()
+                        .UseUrls($"http://{Config.WebSocketHost}:{Config.WebSocketPort}/")
+                        .UseStartup<Startup>()
+                        .Build();
+            host.Start();
+            Log.Information("WebSocket server is started to listen on: ws://{0}:{1}/ws", Config.WebSocketHost, Config.WebSocketPort);
+
             Console.ReadLine();
             udpserver.Stop();
         }
