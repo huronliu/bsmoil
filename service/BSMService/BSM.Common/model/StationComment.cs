@@ -16,7 +16,7 @@ namespace BSM.Common.Model
 
         public string Comment { get; set; }
 
-        public long UserId { get; set; }
+        public long? UserId { get; set; }
 
         public DateTime CommentAt { get; set; }
 
@@ -24,7 +24,5 @@ namespace BSM.Common.Model
         [ForeignKey("StationId")]
         public Station Station { get; set; }
 
-        [ForeignKey("UserId")]
-        public User User { get; set; }
     }
 }

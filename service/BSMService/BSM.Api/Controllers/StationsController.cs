@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BSM.Common.DB;
 using BSM.Common.Model;
 using BSM.Common.service;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -81,7 +82,7 @@ namespace BSM.Api.Controllers
             var station = await _context.Stations.FindAsync(id);
             if (station == null) return NotFound();
 
-            if (string.IsNullOrWhiteSpace(updated.Name))
+            if (!string.IsNullOrWhiteSpace(updated.Name))
             {
                 if (await _context.Stations.AnyAsync(st => 
                     st.Name.Equals(updated.Name, StringComparison.OrdinalIgnoreCase) &&
@@ -145,26 +146,47 @@ namespace BSM.Api.Controllers
             long id, int seqid,
             [FromBody] CoordinatorRequest request)
         {
-            if (await _context.Coordinators.AnyAsync(co => 
-                co.StationId == id &&
-                co.SeqId == seqid))
+            Coordinator coordinator = await _context.Coordinators.FirstOrDefaultAsync(co =>
+                co.StationId == id && co.SeqId == seqid);
+
+            if (coordinator == null)
             {
-                return BadRequest($"Coordinator already exist");
+                coordinator = new Coordinator();
+                coordinator.StationId = id;
+                coordinator.SeqId = seqid;
+                coordinator.Name = request.Name;
+                coordinator.Address = request.Address;
+                coordinator.IPHost = request.IPHost;
+                coordinator.IPPort = request.IPPort;
+                coordinator.Disabled = false;
+                coordinator.CreatedAt = DateTime.Now;
+                _context.Coordinators.Add(coordinator);
             }
-
-            Coordinator coordinator = new Coordinator();
-            coordinator.StationId = id;
-            coordinator.SeqId = seqid;
-            coordinator.Name = request.Name;
-            coordinator.Address = request.Address;
-            coordinator.IPHost = request.IPHost;
-            coordinator.IPPort = request.IPPort;
-            coordinator.Disabled = false;
-            coordinator.CreatedAt = DateTime.Now;
-
-            _context.Coordinators.Add(coordinator);
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(request.Name))
+                {
+                    coordinator.Name = request.Name;
+                }
+                if (!string.IsNullOrWhiteSpace(request.Address))
+                {
+                    coordinator.Address = request.Address;
+                }
+                if (request.IPHost != null)
+                {
+                    coordinator.IPHost = request.IPHost;
+                }
+                if (request.IPPort.HasValue)
+                {
+                    coordinator.IPPort = request.IPPort;
+                }
+                if (request.Disabled.HasValue)
+                {
+                    coordinator.Disabled = request.Disabled.Value;
+                }
+            }
+            
             await _context.SaveChangesAsync();
-
             return coordinator;
         }
 
@@ -179,11 +201,11 @@ namespace BSM.Api.Controllers
             {
                 return NotFound();
             }
-            if (string.IsNullOrWhiteSpace(request.Name))
+            if (!string.IsNullOrWhiteSpace(request.Name))
             {
                 coordinator.Name = request.Name;
             }
-            if (string.IsNullOrWhiteSpace(request.Address))
+            if (!string.IsNullOrWhiteSpace(request.Address))
             {
                 coordinator.Address = request.Address;
             }

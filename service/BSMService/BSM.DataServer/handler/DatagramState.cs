@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BSM.DataServer
 {
-    enum DatagramState
+    public enum DatagramState
     {
         OK,
         InvalidLength,

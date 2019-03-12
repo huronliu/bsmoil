@@ -18,7 +18,13 @@ Vue.prototype.$util = {
   },
   error(text) {
     Vue.prototype.$bus.$emit('snackbar', { text: text, type: 'error' });
-  }
+  },
+  showLoading() {
+    Vue.prototype.$bus.$emit("show-loading");
+  },
+  hideLoading() {
+    Vue.prototype.$bus.$emit("hide-loading");
+  },
 }
 
 new Vue({

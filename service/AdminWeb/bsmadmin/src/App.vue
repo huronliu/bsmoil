@@ -38,6 +38,14 @@
       {{snackbar.text}}
       <v-btn color="primary" flat @click="snackbar.display = false">X</v-btn>
     </v-snackbar>
+
+    <v-dialog v-model="loading" hide-overlay persistent fullscreen>
+      <v-card height="92" min-height="92" class="loading">
+        <v-card-text class="loading-progress">
+          <v-progress-circular indeterminate size="60" color="primary"></v-progress-circular>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -54,9 +62,10 @@ export default {
       snackbar: {
         display: false,
         text: null,
-        timeout: 30000,
+        timeout: 10000,
         type: 'info'
-      }
+      },
+      loading: false
     }
   },
   computed: {
@@ -88,11 +97,30 @@ export default {
     this.$bus.$on("snackbar", (arg) => {
       this.snackbar = {
         text: arg.text,
-        timeout: 30000,
+        timeout: 10000,
         display: true,
         type: arg.type
       };
     });
+    this.$bus.$on("show-loading", () => {
+      this.loading = true;
+    });
+    this.$bus.$on("hide-loading", () => {
+      this.loading = false;
+    });
   }
 }
 </script>
+
+<style scoped>
+.loading {
+  background: #000;
+  opacity: 0.6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.loading-progress {
+  text-align: center;
+}
+</style>

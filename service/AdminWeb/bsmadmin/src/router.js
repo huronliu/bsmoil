@@ -1,8 +1,9 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import Home from './views/Home.vue'
-import Setting from './views/Setting.vue'
-import Stations from './views/Stations.vue'
+import Vue from 'vue';
+import Router from 'vue-router';
+import Home from './views/Home.vue';
+import Setting from './views/Setting.vue';
+import Stations from './views/Stations.vue';
+import Monitor from './views/Monitor.vue';
 
 Vue.use(Router)
 
@@ -22,6 +23,11 @@ export default new Router({
       path: '/stations',
       name: 'stations',
       component: Stations
+    },
+    {
+      path: '/monitor',
+      name: 'monitor',
+      component: Monitor
     },
     {
       path: '/about',

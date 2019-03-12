@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Serilog;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace BSM.DataServer.websocket
 {
@@ -39,6 +40,44 @@ namespace BSM.DataServer.websocket
                 Log.Error(ex, "Error occurred while websocket client connecting");
             }
             
+        }
+
+        public void BroadcastDatagram(Datagram datagram)
+        {
+            Task.Factory.StartNew(async () =>
+            {
+                if (clients.Count > 0)
+                {
+                    foreach (var c in clients.Values)
+                    {
+                        try
+                        {
+                            if (c.State == WebSocketState.Open)
+                            {
+                                byte[] buffer;
+                                string json = JsonConvert.SerializeObject(new
+                                {
+                                    type = "datagram", 
+                                    data = new
+                                    {
+                                        type = datagram.Type,
+                                        state = datagram.State.ToString("G"),
+                                        from = $"{datagram.From.Address.ToString()}:{datagram.From.Port}",
+                                        bytes = BitConverter.ToString(datagram.Bytes),
+                                        time = DateTime.Now.ToString("HH:mm:ss.ffff")
+                                    }                                    
+                                });
+                                buffer = UTF8Encoding.UTF8.GetBytes(json);
+                                await c.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error($"Error when send datagram to websocket client: {ex.Message}");
+                        }
+                    }
+                }
+            });            
         }
     }
 }

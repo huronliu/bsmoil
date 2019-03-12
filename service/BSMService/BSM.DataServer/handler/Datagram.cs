@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BSM.DataServer
 {
-    class Datagram
+    public class Datagram
     {
         public static readonly byte TYPE_DATA = 0x01;
         public static readonly byte TYPE_ADDR_SET = 0x03;

@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using BSM.DataServer.websocket;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -72,6 +73,8 @@ namespace BSM.DataServer
                 datagram.From = remoteIp;
                 
                 Log.Debug("Datagram received from {0}: {1}", remoteIp.ToString(), datagram.ToString());
+
+                WebSocketManager.Instance.BroadcastDatagram(datagram);
 
                 await this.dataProcessor.Process(datagram);
             } catch(Exception ex)

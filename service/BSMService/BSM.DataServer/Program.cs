@@ -26,11 +26,11 @@ namespace BSM.DataServer
 
             var host = new WebHostBuilder()
                         .UseKestrel()
-                        .UseUrls($"http://{Config.WebSocketHost}:{Config.WebSocketPort}/")
+                        .UseUrls($"http://{Config.WebHost}:{Config.WebPort}/")
                         .UseStartup<Startup>()
                         .Build();
             host.Start();
-            Log.Information("WebSocket server is started to listen on: ws://{0}:{1}/ws", Config.WebSocketHost, Config.WebSocketPort);
+            Log.Information("WebSocket server is started to listen on: ws://{0}:{1}/ws", Config.WebHost, Config.WebPort);
 
             Console.ReadLine();
             udpserver.Stop();

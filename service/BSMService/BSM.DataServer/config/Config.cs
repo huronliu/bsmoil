@@ -19,17 +19,22 @@ namespace BSM.DataServer
             get; private set;
         }
 
+        public static bool UdpEnabled
+        {
+            get; private set;
+        }
+
         public static String DBConnection
         {
             get; private set;
         }
 
-        public static String WebSocketHost
+        public static String WebHost
         {
             get; private set;
         }
 
-        public static int WebSocketPort
+        public static int WebPort
         {
             get; private set;
         }
@@ -43,11 +48,12 @@ namespace BSM.DataServer
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
 
-                UdpHost = config["udpServer:host"]; 
-                UdpPort = int.Parse(config["udpServer:port"]);
                 DBConnection = config.GetConnectionString("BSMDatabase");
-                WebSocketHost = config["websocket:host"];
-                WebSocketPort = int.Parse(config["websocket:port"]);
+                WebHost = config["web:host"];
+                WebPort = int.Parse(config["web:port"]);
+                UdpHost = config["udp:host"];
+                UdpPort = int.Parse(config["udp:port"]);
+                UdpEnabled = bool.Parse(config["udp:enabled"]);
             }
             catch(Exception ex)
             {

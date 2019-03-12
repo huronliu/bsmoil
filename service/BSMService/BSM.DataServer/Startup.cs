@@ -30,7 +30,7 @@ namespace BSM.DataServer
             app.UseWebSockets(websocketOptions);
             app.Use(async (context, next) =>
             {
-                if (context.Request.Path == "/ws")
+                if (context.Request.Path.HasValue && context.Request.Path.Value.Contains("/ws"))
                 {
                     if (context.WebSockets.IsWebSocketRequest)
                     {
