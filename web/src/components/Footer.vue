@@ -26,7 +26,7 @@ export default {
   },
   data() {
     return {
-      warnsCount: 5      
+      warnsCount: 0      
     };
   },
   computed: {    

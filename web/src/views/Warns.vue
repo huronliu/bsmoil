@@ -135,7 +135,6 @@
 
 <script>
 import moment from 'moment';
-import demowarns from '../config/warns.json';
 
 export default {
   name: "Warns",
@@ -225,7 +224,7 @@ export default {
     //load stations from server
     loadWarns() {
       this.$utils.showLoading();
-      this.warns = demowarns;
+      this.warns = [];
       this.$utils.hideLoading();
       // this.$http
       //   .get("/api/stations/list")

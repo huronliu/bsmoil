@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using BSM.Api.model;
 using BSM.Common.DB;
 using BSM.Common.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -26,24 +27,68 @@ namespace BSM.Api.Controllers
         public IEnumerable<StationData> Get(
             [FromQuery(Name = "stationid")][Required] long stationId, 
             [FromQuery(Name = "seqid")] int? seqid,
-            [FromQuery(Name = "start")] DateTime? startTime, 
-            [FromQuery(Name = "end")] DateTime? endTime, 
+            [FromQuery(Name = "start")] DateTime startTime, 
+            [FromQuery(Name = "end")] DateTime endTime, 
             [FromQuery(Name = "index")] int? pageIndex, 
             [FromQuery(Name = "count")] int? pageCount)
         {
             if (!pageIndex.HasValue) pageIndex = 1;
             if (!pageCount.HasValue) pageCount = 20;
 
-            return _context.StationDatas
-                .Where(sd =>
-                    sd.StationId == stationId &&
-                    seqid.HasValue? sd.SeqId == seqid : true &&
-                    startTime.HasValue ? sd.ReceivedAt >= startTime.Value : true &&
-                    endTime.HasValue ? sd.ReceivedAt <= endTime.Value : true)
+            var query = from d in _context.StationDatas
+                        where d.StationId == stationId && d.SeqId == seqid && d.ReceivedAt >= startTime && d.ReceivedAt <= endTime
+                        orderby d.ReceivedAt descending
+                        select d;
+
+            var result = query
                 .Skip(pageCount.Value * (pageIndex.Value - 1))
                 .Take(pageCount.Value)
-                .OrderByDescending(sd => sd.ReceivedAt)
                 .ToList();
+
+            return result;
+        }
+
+        [HttpGet("avg")]
+        public IEnumerable<StationAvgData> GetAvgData(
+            [FromQuery(Name = "stationid")][Required] long stationId,
+            [FromQuery(Name = "seqid")] int? seqid,
+            [FromQuery(Name = "start")] DateTime startDay, 
+            [FromQuery(Name = "end")] DateTime endDay)
+        {
+            var query = from d in _context.StationDatas
+                        where d.StationId == stationId && d.SeqId == seqid && d.ReceivedAt >= startDay && d.ReceivedAt <= endDay
+                        group d by new
+                        {
+                            d.ReceivedAt.Value.Date,
+                            d.Tilt1_X_Degree,
+                            d.Tilt1_X_Minute,
+                            d.Tilt1_X_Second,
+                            d.Tilt1_X_Positive,
+                            d.Tilt1_Y_Degree,
+                            d.Tilt1_Y_Minute,
+                            d.Tilt1_Y_Second,
+                            d.Tilt1_Y_Positive
+                        } into g
+                        select new StationAvgData {
+                            StationId = stationId,
+                            SeqId = seqid.Value,
+                            Date = g.Key.Date.ToString("yyyy-MM-dd"),
+                            Tilt_Avg_X = g.Average(sd => (float)(sd.Tilt1_X_Degree + (float)sd.Tilt1_X_Minute / 60 + (float)sd.Tilt1_X_Second / 3600)),
+                            Tilt_Avg_Y = g.Average(sd => (float)(sd.Tilt1_Y_Degree + (float)sd.Tilt1_Y_Minute / 60 + (float)sd.Tilt1_Y_Second / 3600))
+                        };
+
+            return query.ToList();
+        }
+
+        [HttpGet("latest")]
+        public StationData GetLatest(
+            [FromQuery(Name = "stationid")][Required] long stationId, 
+            [FromQuery(Name = "seqid")][Required] int seqid)
+        {
+            var data = _context.StationDatas.Where(sd => sd.StationId == stationId && sd.SeqId == seqid)
+                .OrderByDescending(sd => sd.ReceivedAt)
+                .FirstOrDefault();
+            return data;
         }
 
         // POST api/stationdata

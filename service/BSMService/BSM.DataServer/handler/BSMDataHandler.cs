@@ -47,8 +47,8 @@ namespace BSM.DataServer
                         datagram.Type == Datagram.TYPE_REGISTER || 
                         datagram.Type == Datagram.TYPE_TILT_RESET_COMMIT)
                     {
-                        datagram.Data = new byte[datagram.Length - 2];
-                        Array.Copy(bytes, 5, datagram.Data, 0, datagram.Length - 2);
+                        datagram.Data = new byte[datagram.Length - 1];
+                        Array.Copy(bytes, 5, datagram.Data, 0, datagram.Length - 1);
                     } else
                     {
                         datagram.State = DatagramState.InvalidType;

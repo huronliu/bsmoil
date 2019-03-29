@@ -1,6 +1,6 @@
 <template>
   <v-container class="pa-5">
-    欢迎使用铁塔检测系统
+    欢迎使用铁塔检测系统, 请稍等进入基站管理页面...
   </v-container>
 </template>
 
@@ -9,12 +9,14 @@ import storage from '../modules/storage.js';
 
 export default {
   name: "Home",
-  mounted() {
-    if (storage.getAppStarted()) {
-      this.$router.replace("/stations");  
-    } else {
-      this.$router.replace("/start");
-    }    
+  activated() {
+    setTimeout(() => {
+      if (storage.getAppStarted()) {
+        this.$router.replace("/stations");  
+      } else {
+        this.$router.replace("/start");
+      }
+    }, 10);        
   }
 }
 </script>

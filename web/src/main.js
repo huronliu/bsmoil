@@ -1,17 +1,18 @@
 import Vue from 'vue';
-//import './plugins/vuetify';
 import "@/plugins/vuetify";
 import VueAMap from 'vue-amap';
 
-import App from './App.vue'
-import store from './store'
+import App from './App.vue';
+import store from './store';
 import router from './router';
 import Footer from './components/Footer';
 import Header from './components/Header';
 import EditStation from './components/EditStation';
+import EditCoordinator from './components/EditCoordinator';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
 import utils from './modules/utils';
 import axios from 'axios';
+import storage from './modules/storage';
 
 Vue.use(VueAMap);
 VueAMap.initAMapApiLoader({
@@ -25,6 +26,7 @@ Vue.config.productionTip = false
 Vue.component('mobile-footer', Footer);
 Vue.component('mobile-header', Header);
 Vue.component('edit-station', EditStation);
+Vue.component('edit-coordinator', EditCoordinator);
 
 const eventBus = new Vue();
 Object.defineProperties(Vue.prototype, {
@@ -61,6 +63,13 @@ router.beforeEach((to, from, next) => {
   //   });
   //   globalConfig.clear();
   // }
+  if (to.meta.requireAuth) {
+    if (!storage.isTokenValid()) {
+      console.debug("Authentication required");
+      storage.cleanUserSession();
+      next({ path: "/login", query: null });
+    }
+  }
   next();
 });
 

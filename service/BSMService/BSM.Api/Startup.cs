@@ -33,7 +33,7 @@ namespace BSM.Api
         {
             services.AddDbContext<BSMContext>(options =>
             {
-                options.UseSqlServer(Configuration.GetConnectionString("BSMDatabase"));
+                options.UseSqlServer(Configuration.GetConnectionString("BSMDatabase"), b => b.UseRowNumberForPaging());
             });
             
             services.AddCors();

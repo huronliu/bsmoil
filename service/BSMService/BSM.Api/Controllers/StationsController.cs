@@ -230,7 +230,7 @@ namespace BSM.Api.Controllers
         {
             var comments = await (from comment in _context.StationComments
                                   where comment.StationId == id
-                                  orderby comment.CommentAt 
+                                  orderby comment.CommentAt descending 
                                   select comment).ToListAsync();
             return comments;
         }

@@ -95,30 +95,32 @@
                   ></v-text-field>
                 </v-flex>
               </v-layout>
-            </v-list-tile>
+            </v-list-tile>            
             <v-list-tile class="mx-3 mt-4">
               <v-layout>
                 <v-flex xs12>
-                  <v-text-field
-                    v-model="station.city"
-                    type="text"
-                    name="st_city"
-                    label="城市"
-                    class="caption"
-                  ></v-text-field>
+                  <v-select 
+                    label="省"
+                    v-model="station.province"
+                    :items="provinces"
+                    item-text="name"
+                    item-value="name"
+                    class="caption" @change="provincechange"></v-select>
                 </v-flex>
               </v-layout>
             </v-list-tile>
             <v-list-tile class="mx-3 mt-4">
               <v-layout>
                 <v-flex xs12>
-                  <v-text-field
-                    v-model="station.province"
-                    type="text"
-                    name="st_province"
-                    label="省"
+                  <v-select
+                    v-model="station.city"
+                    :items="cities"
+                    item-text="name"
+                    item-value="name"
+                    name="st_city"
+                    label="城市"
                     class="caption"
-                  ></v-text-field>
+                  ></v-select>
                 </v-flex>
               </v-layout>
             </v-list-tile>
@@ -319,7 +321,9 @@ export default {
       ],
       showComments: false,
       comments: [],
-      newcomment: null
+      newcomment: null,
+      provinces: [],
+      cities: []
     }
   },
   methods: {
@@ -329,6 +333,22 @@ export default {
     apiurl() {
       let setting = JSON.parse(this.$ls.get('bsm_setting'));
       return `http://${setting.host}:${setting.apiPort}/api`;
+    },
+    retrieveCities() {
+      this.provinces = [];
+      this.cities = [];
+      axios.get(this.apiurl() + '/cities', {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          "Access-Control-Allow-Origin": "*",
+        }, 
+        data: {}
+      }).then(result => {
+        this.provinces = result.data;
+      }).catch(err => {
+        this.$util.error(`获取城市列表出错: ${err.message}`);
+      });
     },
     retrieveStations() {
       this.stations = [];
@@ -484,7 +504,18 @@ export default {
     tolocaltime(time) {
       let dt = new Date(time);
       return dt.toLocaleString('en-US', { timezone: 'Asia/Shanghai'});
+    },
+    provincechange(item) {
+      this.cities = [];
+      this.provinces.forEach((pro) => {
+        if (pro.name === item) {
+          this.cities = pro.districtList;
+        }
+      });
     }
+  },
+  beforeMount() {
+    this.retrieveCities();
   }
 }
 </script>

@@ -108,33 +108,7 @@
                     type="number"
                     maxlength="16"
                   ></v-text-field>
-                </v-flex>
-                <v-flex xs12 sm12 pa-3>
-                  <v-select
-                      v-model="filter.levels"
-                      clearable
-                      chips
-                      small-chips
-                      single-line
-                      multiple
-                      hide-details
-                      :items="stLevels"
-                      label="基站级别"
-                    >
-                      <template slot="selection" slot-scope="{ item, index }">
-                        <v-chip small v-if="index === 0">
-                          <span>{{ item }}</span>
-                        </v-chip>
-                        <v-chip small v-if="index === 1">
-                          <span>{{ item }}</span>
-                        </v-chip>
-                        <span
-                          v-if="index === 2"
-                          class="grey--text caption"
-                        >+{{ filter.levels.length - 1 }}</span>
-                      </template>
-                    </v-select>
-                </v-flex>
+                </v-flex>                
               </v-layout>
             </v-card-text>
             <v-spacer></v-spacer>
@@ -171,12 +145,12 @@
                   </v-list-tile-avatar>
                   
                   <v-list-tile-content>
-                    <v-list-tile-title class="text--primary">
-                      <v-icon class="title_icon">place</v-icon>
-                      {{ st.title }}
+                    <v-list-tile-title class="text--primary">                      
+                      {{ st.name }} - [{{st.tag}}]
                     </v-list-tile-title>
                     <v-list-tile-sub-title>
-                      <span class="disable_pn">{{st.id}}</span>
+                      <v-icon class="title_icon" small>place</v-icon>
+                      <span class="disable_pn">{{st.city}}, {{st.province}}</span>
                     </v-list-tile-sub-title>
                   </v-list-tile-content>
 
@@ -246,7 +220,7 @@
           offset-y
           style="z-index: 999"
         >
-          <v-list>
+          <v-list v-if="!isMovingStation">
             <v-list-tile>
               <v-list-tile-title @click="onViewStationMenuClicked">查看基站数据</v-list-tile-title>
             </v-list-tile>
@@ -256,15 +230,24 @@
             </v-list-tile>
             <v-divider></v-divider>
             <v-list-tile>
-              <v-list-tile-title @click="onEditStationMenuClicked">移动基站位置</v-list-tile-title>
+              <v-list-tile-title @click="onMoveStationMenuClicked">移动基站位置</v-list-tile-title>
             </v-list-tile>
             <v-divider></v-divider>
             <v-list-tile>
               <v-list-tile-title @click="onAddCommentMenuClicked">增加备注</v-list-tile-title>
             </v-list-tile>
           </v-list>
+          <v-list v-if="isMovingStation">
+            <v-list-tile>
+              <v-list-tile-title @click="onMoveEndMenuClicked">移动结束</v-list-tile-title>
+            </v-list-tile>
+          </v-list>
         </v-menu>
       </v-layout>
+
+      <v-btn absolute icon class="addbtn" color="primary" @click="createStation">
+        <v-icon>add</v-icon>
+      </v-btn>
 
       <edit-station :is-new="isAddNew" :show-edit-dialog="showEditStationDialog"
           :station="curStation"
@@ -298,22 +281,22 @@
 
 <script>
 import moment from 'moment';
-import allcities from '../config/cities.json';
-import demostations from '../config/stations.json';
 import EditStation from '../components/EditStation.vue';
 import VueAMap from 'vue-amap';
 import { lazyAMapApiLoaderInstance } from 'vue-amap';
+import api from '../modules/api.js';
 
 let amapManager = new VueAMap.AMapManager();
 
 export default {
   name: "Stations",
+  props: ['displayStationId'],
   components: {
     EditStation
   },
   data() {
     return {
-      displayMode: "map",
+      displayMode: "list", //map or list
       searchKey: "",
       city: '北京',
       filter: {},
@@ -322,14 +305,10 @@ export default {
       displayStations: [],
       curStation: {}, 
 
-      refreshFlag: true,
-      refreshInterval: 15,
       pageSize: 30,
 
       filterMenu: false,
       cityDialog: false,
-      
-      stLevels: [1, 2, 3, 4, 5],
       
       isAddNew: false,
       newComment: null,
@@ -352,7 +331,7 @@ export default {
         },
         'zoomchange': () => {
         },
-        'click': (e) => {
+        'click': () => {
           if (this.map_temp_menu_show) {
             this.map_temp_menu_show = false;
           }
@@ -360,13 +339,13 @@ export default {
             this.map_station_menu_show = false;
           }
         },
-        'touchstart': (e) => {
+        'touchstart': () => {
           this.map_touch_start = moment();
           if (document.getElementById('searchKey') === document.activeElement) {
             document.getElementById('searchKey').blur();
           }
         },
-        'touchmove': (e) => {
+        'touchmove': () => {
           this.map_touch_start = null;
         },
         'touchend': (e) => {        
@@ -385,6 +364,7 @@ export default {
       mapStyle: "amap://styles/8c300aebf1b10327aa1e687d2fe8e654",
 
       markers: [],
+      curMarker: null,
       tempMarker: //used for creating new station
       {
         position: [0, 0],
@@ -420,7 +400,9 @@ export default {
 
       showNewStationDialog: false, //whether show the New Station dialog
       showEditStationDialog: false,//Whether show the Edit station dialog
-      showAddCommentDialog: false  //Whether show the Add Comment dialog
+      showAddCommentDialog: false,  //Whether show the Add Comment dialog
+
+      isMovingStation: false //whether the moving station menu clicked
     };
   },
   computed: {
@@ -488,17 +470,8 @@ export default {
       });
     },
 
-    //handle when click the station marker on map or in the list
-    showDetail(station) {
-      this.$router.push({
-        name: "stationDetail",
-        params: { station: station }
-      });
-    },
-
-    //reload stations
+    //reload stations ----------------------
     refresh() {
-      console.log("refresh");
       this.loadStations();
       window.scrollTo(0, 0);
     },
@@ -516,30 +489,66 @@ export default {
         this.$utils.toast("没有更多");
       }      
     },
+    //---------------------------------------
 
     //add new station on the map
-    addNewStation(station, lnglat) {
-      let self = this;
+    // addNewStation(station, lnglat) {
+    //   let self = this;
 
-      this.markers.push({
-        position: [lnglat.lng, lnglat.lat],
-        events: {
-          click: (e) => {
-            self.map_station_menu_x = e.pixel.getX();
-            self.map_station_menu_y = e.pixel.getY();
-            self.curStation = station;
-            self.map_station_menu_show = true;
+    //   this.markers.push({
+    //     position: [lnglat.lng, lnglat.lat],
+    //     events: {
+    //       click: (e) => {
+    //         self.map_station_menu_x = e.pixel.getX();
+    //         self.map_station_menu_y = e.pixel.getY();
+    //         self.curStation = station;
+    //         self.map_station_menu_show = true;
+    //       },
+    //       dragend: () => {
+    //         console.log('---event---: dragend');
+    //       }
+    //     },
+    //     label: {content: station.id, offset: [0, 35]},
+    //     visible: true,
+    //     draggable: false,
+    //     template: `<span>${station.id}</span>`
+    //   });
+    //   this.stations.push(station);
+    // },
+
+    //show the existing stations on the map
+    addStationOnMap(station) {
+      let self = this;
+      if (station && station.lat && station.lng) {
+        this.markers.push({
+          position: [station.lng, station.lat],
+          offset: [-13,30],
+          events: {
+            click: (e) => {
+              self.map_station_menu_x = e.pixel.getX();
+              self.map_station_menu_y = e.pixel.getY();
+              self.curStation = station;
+              self.map_station_menu_show = true;
+            },
+            dragend: (e) => {
+              console.log(`event--dragend: ${e.lnglat}`);
+              self.curStation.lng = e.lnglat.lng;
+              self.curStation.lat = e.lnglat.lat;
+              api.saveStation(self.curStation.id, self.curStation)
+              .then(result => {
+                this.$utils.toast(`基站新位置已保存`);
+              }).catch(err => {
+                this.$utils.toast(`保存位置出错: ${err.message}`);
+              });
+            }
           },
-          dragend: (e) => {
-            console.log('---event---: dragend');
-          }
-        },
-        label: {content: station.id, offset: [0, 35]},
-        visible: true,
-        draggable: false,
-        template: `<span>${station.id}</span>`
-      });
-      this.stations.push(station);
+          label: {content: station.name, offset: [0, 35]},
+          visible: true,
+          draggable: false,
+          template: `<span>${station.name}</span>`,
+          stationId: station.id
+        });
+      }
     },
 
     calcDist(x1, y1, x2, y2) {
@@ -554,45 +563,103 @@ export default {
       this.tempMarker.visible = true;      
     },
 
-    //when click the Save on the Add New Station dialog
-    tempMenuSave(station) {
-      this.showNewStationDialog = false;
-      let lnglat = this.map_temp_marker.getPosition();
-      this.tempMarker.visible = false;      
-      this.addNewStation(station, lnglat);            
-    },
-    tempMenuCancel() {
-      this.showNewStationDialog = false;
-    },
-    cancelTempMarker() {
-      this.tempMarker.visible = false;
-    },
+    //Add new station --------------------
     onAddNewStationClicked() {
       this.curStation = {};
+      this.curStation.lng = this.tempMarker.position[0];
+      this.curStation.lat = this.tempMarker.position[1];      
+      this.isAddNew = true;
+      console.log(`new station loc: ${this.curStation.lng}, ${this.curStation.lat}`);
       this.showEditStationDialog = true;
     },
 
-    //edit station
+    createStation() {
+      this.curStation = {};
+      if (this.displayMode === 'map') {
+        let center = this.$refs.map.$$getCenter();
+        this.curStation.lng = center[0];
+        this.curStation.lat = center[1];
+      }      
+      this.isAddNew = true;
+      console.log(`new station loc: ${this.curStation.lng}, ${this.curStation.lat}`);
+      this.showEditStationDialog = true;
+    },
+
+    //when click the Save on the Add New Station dialog
+    // tempMenuSave(station) {
+    //   this.showNewStationDialog = false;
+    //   let lnglat = this.map_temp_marker.getPosition();
+    //   this.tempMarker.visible = false;      
+    //   this.addNewStation(station, lnglat);            
+    // },
+    // tempMenuCancel() {
+    //   this.showNewStationDialog = false;
+    // },
+    cancelTempMarker() {
+      this.tempMarker.visible = false;
+    },
+    //-----------------------------------------------    
+
+    //edit station ----------------------
     onEditStationMenuClicked() {
       this.map_station_menu_show = false;
       this.showEditStationDialog = true;
-    },
+    },    
     onEditStationSave() {
       this.showEditStationDialog = false;
+      this.$utils.toast(`基站信息已保存`);
+      this.loadStations();
     },
     onEditStationCancel() {
       this.showEditStationDialog = false;
     },
+    //-----------------------------------
+
+    //Move station ----------------------
+    onMoveStationMenuClicked() {
+      this.map_station_menu_show = false;
+      this.curMarker = null;
+      if (this.curStation) {
+        this.isMovingStation = true;
+        for (let i = 0; i < this.markers.length; i++) {
+          let marker = this.markers[i];
+          if (marker.stationId === this.curStation.id) {
+            marker.draggable = true;    
+            this.curMarker = marker;        
+            return;
+          }
+        };
+      }      
+    },
+    onMoveEndMenuClicked() {
+      this.map_station_menu_show = false;
+      this.isMovingStation = false;      
+      if (this.curMarker) {
+        this.curMarker.draggable = false;        
+      }
+    },
+    //-----------------------------------
+
     //click the View Station data on menu
+    //-----------------------------------
     onViewStationMenuClicked() {
       this.map_station_menu_show = false;
       this.showDetail(this.curStation);
     },
+    showDetail(station) {
+      this.$router.push({
+        name: "stationDetail",
+        params: { station: station }
+      });
+    },
+    //----------------------------------
+
     //click the Add Comment on menu
+    //------------------------------
     onAddCommentMenuClicked() {
       this.map_station_menu_show = false;
       this.showAddCommentDialog = true;
-    },
+    },    
     addCommentCancel() {
       this.showAddCommentDialog = false;
       this.newComment = "";
@@ -605,41 +672,30 @@ export default {
       });
       this.newComment = "";
     },
+    // -----------------------------
 
     //load stations from server
     loadStations() {
       this.$utils.showLoading();
-      //load some demo data
-      demostations.forEach(ds => {
-        this.addNewStation(ds, ds.position);
-      });
-      this.$utils.hideLoading();
-      this.showFirstPage();
-      // this.$http
-      //   .get("/api/stations/list")
-      //   .then(result => {
-      //     this.$utils.hideLoading();
-      //     var retData = result.data;
-      //     this.stations = _.orderBy(retData, [], []);
-      //     this.showFirstPage();
-      //   })
-      //   .catch(error => {
-      //     this.$utils.hideLoading();
-      //     var errorMsg = "";
-      //     if (
-      //       error &&
-      //       error.response &&
-      //       error.response.status &&
-      //       error.response.status === 401
-      //     ) {
-      //       errorMsg = "获取站点数据超时";
-      //     } else {
-      //       errorMsg = `获取站点数据时出错: ${error.message}`;
-      //     }
-
-      //     this.$utils.toast(errorMsg);
-      //   });
-
+      
+      this.stations = [];
+      this.markers = [];
+      api.getStations()
+        .then(result => {
+          this.$utils.hideLoading();
+          if (result && result.length > 0) {
+            var retData = result;
+            this.stations = _.orderBy(retData, [], []);
+            this.showFirstPage();
+            this.stations.forEach(st => {
+              this.addStationOnMap(st);
+            });
+          }          
+        })
+        .catch(err => {
+          this.$utils.hideLoading();          
+          this.$utils.toast(`获取基站列表失败: ${err.message}`);
+        });
     },
 
     //initialize map
@@ -652,7 +708,7 @@ export default {
           city: this.city,
           citylimit: true 
         };
-        this.map_autoComplete = new AMap.Autocomplete(autoOptions);        
+        this.map_autoComplete = new AMap.Autocomplete(autoOptions);
         this.map_autoComplete.on('select', (e) => {
           console.log(`select search result: ${JSON.stringify(e)}`);
           if (e && e.poi) {
@@ -660,7 +716,7 @@ export default {
             map.setZoomAndCenter(15, e.poi.location);
           }          
         });
-        this.map_autoComplete.on('complete', (e) => {          
+        this.map_autoComplete.on('complete', () => {          
         });
         this.map_autoComplete.on('error', (e) => {
           console.error(`Error when select search result: ${JSON.stringify(e)}`);
@@ -685,8 +741,10 @@ export default {
           console.error(err);
         });
         if (!geolocation.isSupported()) {
-          console.error('Geo Location is not supported');
+          this.$utils.toast('不支持获取地理位置');
         }
+
+        this.map = map;
       });
       
       //   //search cities
@@ -695,18 +753,36 @@ export default {
       //     subdistrict: 2
       //   });
 
-      //   //load cities
-      this.provinces = allcities;
-        
-    },    
+    },   
+    initCities() {
+      api.getCitiesList().then(result => {
+        this.provinces = result;
+      }).catch(err => {
+        this.$$utils.toast(`获取城市列表出错: ${err.message}`);
+      });
+    } 
   },
-  mounted: function() {
+  beforeMount() {
+    this.initCities();
+  },
+  mounted() {    
     this.initMap();
     this.loadStations();
   },
-  activated: function() {
-  },
-  deactivated: function() {}
+  activated() {
+    if (this.displayStationId && this.displayStationId > 0) {
+      console.log(`Stations page is activated with station id: ${this.displayStationId}`);
+      this.displayMode = 'map';
+      this.markers.forEach(mk => {
+        if (mk.stationId === this.displayStationId) {
+          this.map.setZoomAndCenter(15, mk.position);          
+        }
+      });
+      //this.displayStationId = 0;
+    } else {
+      console.log(`Stations page is activated without station id specified`);
+    }
+  }
 };
 </script>
 
@@ -797,5 +873,13 @@ i.item_icon {
 .map {
   width:100vw; 
   height: 78vh;
+}
+.addbtn {
+  display: block;
+  position: fixed; /* Fixed/sticky position */
+  bottom: 80px; /* Place the button at the bottom of the page */
+  left: 20px; /* Place the button 30px from the right */
+  z-index: 99; /* Make sure it does not overlap */
+  border: none; /* Remove borders */
 }
 </style>

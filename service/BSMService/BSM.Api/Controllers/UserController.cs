@@ -126,9 +126,7 @@ namespace BSM.Api.Controllers
                     Subject = new ClaimsIdentity(new Claim[] {
                         new Claim("id", user.Id.ToString()),
                         new Claim("username", user.LoginID),
-                        new Claim(ClaimTypes.Email, user.Email),
-                        new Claim(ClaimTypes.Name, user.Name),
-                        new Claim("mobile", user.MobilePhone)
+                        new Claim(ClaimTypes.Name, user.Name)
                     }),
                     Expires = DateTime.Now.AddDays(7),
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secret), SecurityAlgorithms.HmacSha256Signature)

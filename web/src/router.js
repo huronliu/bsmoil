@@ -6,9 +6,11 @@ import Warns from "./views/Warns";
 import WarnDetail from "./views/WarnDetail";
 import WarnsHistory from "./views/WarnsHistory";
 import Me from "./views/Me";
-import Temp from "./views/Temp";
 import Home from "./views/Home";
 import Startup from "./views/Startup";
+import Login from "./views/Login";
+import Config from "./views/Config";
+import Setting from "./views/Setting";
 
 Vue.use(Router);
 
@@ -18,8 +20,9 @@ export default new Router({
     {
       path: "/login",
       name: "login",
-      component: Temp,
+      component: Login,
       meta: {
+        requireAuth: false,
         footer: false
       }
     },
@@ -28,6 +31,7 @@ export default new Router({
       name: "start",
       component: Startup,
       meta: {
+        requireAuth: false,
         footer: false 
       }
     },
@@ -36,7 +40,7 @@ export default new Router({
       name: "home",
       component: Home,
       meta: {
-        requireAuth: true,
+        requireAuth: false,
         roles: []
       }
     },
@@ -47,7 +51,8 @@ export default new Router({
       meta: {
         requireAuth: true,
         roles: []
-      }
+      },
+      props: true
     },
     {
       path: "/stationdetail",
@@ -89,18 +94,18 @@ export default new Router({
       props: true
     },
     {
-      path: "/admin",
-      name: "admin",
-      component: Temp,
+      path: "/setting",
+      name: "setting",
+      component: Setting,
       meta: {
-        requireAuth: true,
-        roles: []
+        requireAuth: false,
+        footer: false
       }
     },
     {
       path: "/config",
       name: "/config",
-      component: Temp,
+      component: Config,
       meta: {
         requireAuth: true,
         roles: []

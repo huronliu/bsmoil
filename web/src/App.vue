@@ -41,7 +41,7 @@ export default {
       },
       allNavs: [
         { title: "基站", to: { path: "/stations" }, icon: "list_alt", flags: 0, roleFlag: 1 },
-        { title: "报警", to: { path: "/warns" }, icon: "notification_important", flags: 5, roleFlag: 1 },
+        { title: "报警", to: { path: "/warns" }, icon: "notification_important", flags: 0, roleFlag: 1 },
         { title: "配置", to: { path: "/config" }, icon: "settings", flags: 0, roleFlag: 1 },
         { title: "我", to: { path: "/me" }, icon: "account_box", flags: 0, roleFlag: 1 }
       ]

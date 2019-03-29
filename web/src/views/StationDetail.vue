@@ -4,20 +4,53 @@
       <template slot="left">
         <v-btn icon large v-on:click="goBack()">
           <v-icon medium>keyboard_arrow_left</v-icon>
+        </v-btn>        
+      </template>
+      <template>
+        <v-btn icon large @click="refresh()">
+          <v-icon>refresh</v-icon>
         </v-btn>
       </template>
     </mobile-header>
 
+    <!-- station info  -->
+    <v-card  class="mb-1 py-2 pb-4">
+      <v-layout align-center >
+        <v-flex xs10 class="px-3 py-1">          
+                <span class="">
+                  <v-icon small>perm_device_information</v-icon>
+                  {{ station.name }} [{{ station.tag }}]
+                </span>
+        </v-flex>
+        <v-flex xs2 class="pr-5 py-2">
+          <v-btn icon small color="primary" @click="editstation"><v-icon small>edit</v-icon></v-btn>        
+        </v-flex>        
+      </v-layout>
+      <v-layout align-center justify-end row class="px-3">
+        <v-flex xs12>
+          <span class="">
+            <v-icon small>place</v-icon>
+              {{station.city}}, {{station.province}}
+          </span>
+        </v-flex>
+      </v-layout>
+    </v-card>
+
     <v-tabs
         slot="extension"
-        v-model="tabs"
+        v-model="seltab"
         fixed-tabs
-        color="transparent"
+        color=""
         v-if="!error"
+        @change="tabchange"
       >
       <v-tabs-slider></v-tabs-slider>
       <v-tab href="#basic" class="primary--text">
         <v-icon>description</v-icon>
+      </v-tab>
+
+      <v-tab href="#history" class="primary--text">
+        <v-icon>list_alt</v-icon>
       </v-tab>
 
       <v-tab href="#chart" class="primary--text">
@@ -29,80 +62,68 @@
       </v-tab>
     </v-tabs>
    
-    <v-tabs-items v-model="tabs" class="white elevation-1" v-if="!error">
+    <v-tabs-items v-model="seltab" class="white elevation-1" v-if="!error">
       <v-tab-item id="basic">
-        <!-- station info  -->
-        <v-card  class="mb-1">
-          <v-layout align-center >
-            <v-flex xs6 class="px-4 py-3">          
-                    <span class="font-weight-bold">
-                      <v-icon small>place</v-icon>
-                      {{ station.title }}
-                    </span>
-            </v-flex>
-            <v-flex xs6 class="px-4 py-3">
-                    <span class="font-weight-bold">
-                      <v-icon small>perm_device_information</v-icon>
-                      {{ station.id }}
-                    </span>
-            </v-flex>
-          </v-layout>
-        </v-card>
-
-        <!-- Station -->
-        <v-card v-if="!error" class="mb-2">
-          <v-layout align-center>
-            <v-flex>
-              <v-list dense class="pl-3 pr-3">
-                <v-list-tile>
-                  <v-list-tile-content>垂直度偏差</v-list-tile-content>
-                  <v-list-tile-content class="item_value"
-                  >{{ station.data.vertical }}</v-list-tile-content>
-                </v-list-tile>
-                <v-divider></v-divider>
-                <v-list-tile>
-                  <v-list-tile-content>水平角度 X轴</v-list-tile-content>
-                  <v-list-tile-content class="item_value"
-                  >{{ station.data.dipX }}</v-list-tile-content>
-                </v-list-tile>
-                <v-divider></v-divider>
-                <v-list-tile>
-                  <v-list-tile-content>水平角度 Y轴</v-list-tile-content>
-                  <v-list-tile-content class="item_value"
-                  >{{ station.data.dipY }}</v-list-tile-content>
-                </v-list-tile>
-                <v-divider></v-divider>
-                <v-list-tile>
-                  <v-list-tile-content>风速</v-list-tile-content>
-                  <v-list-tile-content class="item_value"
-                  >{{ station.data.speed }}</v-list-tile-content>
-                </v-list-tile>
-                <v-divider></v-divider>
-                <v-list-tile>
-                  <v-list-tile-content>温度</v-list-tile-content>
-                  <v-list-tile-content class="item_value"
-                  >{{ station.data.temprature }}</v-list-tile-content>
-                </v-list-tile>
-                <v-divider></v-divider>                
-                <v-list-tile>
-                  <v-list-tile-content>报警次数</v-list-tile-content>
-                  <v-list-tile-content class="item_value"
-                  >{{ station.warns }}</v-list-tile-content>
-                </v-list-tile>
-                <v-divider></v-divider>
-                <v-list-tile>
-                  <v-list-tile-content>最后数据时间</v-list-tile-content>
-                  <v-list-tile-content class="item_value">{{ station.lastDataTime }}</v-list-tile-content>
-                </v-list-tile>   
-                <v-divider></v-divider>
-                <v-list-tile>
-                  <v-list-tile-content>最后报警时间</v-list-tile-content>
-                  <v-list-tile-content class="item_value">{{ station.lastWarnTime }}</v-list-tile-content>
-                </v-list-tile>            
-              </v-list>
-            </v-flex>
-          </v-layout>
-        </v-card>
+        
+        <!-- Coordinators -->
+        <template v-for="(coor, index) in coordinators">
+          <v-card v-if="!error" class="mb-2 pt-2" v-bind:key="index">
+            <v-layout align-center>
+              <v-flex>
+                <v-list dense class="pl-3 pr-3">
+                  <v-subheader>协调器{{coor.seqId}} - {{coor.address}}</v-subheader>
+                  <v-list-tile>
+                    <v-list-tile-content>
+                      <v-list-tile-title>倾角测量仪1 {{coor.data? coor.data.tilt1_Addr : ''}}</v-list-tile-title>
+                      <v-list-tile-sub-title class="caption">
+                        X轴: {{coor.data? `${coor.data.tilt1_X_Positive > 0? '+' : '-'}${coor.data.tilt1_X_Degree}°${coor.data.tilt1_X_Minute}'${coor.data.tilt1_X_Second}"` : ''}} 
+                        Y轴: {{coor.data? `${coor.data.tilt1_Y_Positive > 0? '+' : '-'}${coor.data.tilt1_Y_Degree}°${coor.data.tilt1_Y_Minute}'${coor.data.tilt1_Y_Second}"` : ''}} 
+                      </v-list-tile-sub-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+                  <v-divider></v-divider>
+                  <!-- <v-list-tile>
+                    <v-list-tile-content>
+                      <v-list-tile-title>倾角测量仪2 {{coor.data? coor.data.tilt2_Addr : ''}}</v-list-tile-title>
+                      <v-list-tile-sub-title class="caption">
+                        X轴: {{coor.data? `${coor.data.tilt2_X_Positive > 0? '+' : '-'}${coor.data.tilt2_X_Degree}°${coor.data.tilt2_X_Minute}'${coor.data.tilt2_X_Second}"` : ''}} 
+                        Y轴: {{coor.data? `${coor.data.tilt2_Y_Positive > 0? '+' : '-'}${coor.data.tilt2_Y_Degree}°${coor.data.tilt2_Y_Minute}'${coor.data.tilt2_Y_Second}"` : ''}} 
+                      </v-list-tile-sub-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+                  <v-divider></v-divider>
+                  <v-list-tile>
+                    <v-list-tile-content>
+                      <v-list-tile-title>倾角测量仪3 {{coor.data? coor.data.tilt3_Addr : ''}}</v-list-tile-title>
+                      <v-list-tile-sub-title class="caption">
+                        X轴: {{coor.data? `${coor.data.tilt3_X_Positive > 0? '+' : '-'}${coor.data.tilt3_X_Degree}°${coor.data.tilt3_X_Minute}'${coor.data.tilt3_X_Second}"` : ''}} 
+                        Y轴: {{coor.data? `${coor.data.tilt3_Y_Positive > 0? '+' : '-'}${coor.data.tilt3_Y_Degree}°${coor.data.tilt3_Y_Minute}'${coor.data.tilt3_Y_Second}"` : ''}} 
+                      </v-list-tile-sub-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+                  <v-divider></v-divider>
+                  <v-list-tile>
+                    <v-list-tile-content>
+                      <v-list-tile-title>倾角测量仪4 {{coor.data? coor.data.tilt4_Addr : ''}}</v-list-tile-title>
+                      <v-list-tile-sub-title class="caption">
+                        X轴: {{coor.data? `${coor.data.tilt4_X_Positive > 0? '+' : '-'}${coor.data.tilt4_X_Degree}°${coor.data.tilt4_X_Minute}'${coor.data.tilt4_X_Second}"` : ''}} 
+                        Y轴: {{coor.data? `${coor.data.tilt4_Y_Positive > 0? '+' : '-'}${coor.data.tilt4_Y_Degree}°${coor.data.tilt4_Y_Minute}'${coor.data.tilt4_Y_Second}"` : ''}} 
+                      </v-list-tile-sub-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+                  <v-divider></v-divider> -->
+                  <v-list-tile>
+                    <v-list-tile-content>最后数据时间</v-list-tile-content>
+                    <v-list-tile-content class="caption">
+                      {{coor.data? `${coor.data.receivedAt}` : ''}}
+                    </v-list-tile-content>
+                  </v-list-tile>  
+                </v-list>
+              </v-flex>
+            </v-layout>
+          </v-card>
+        </template>
+        
         
         <!-- action buttons -->
         <v-card v-if="!error" class="mb-2">
@@ -122,20 +143,171 @@
           </v-layout>
           </v-card>
       </v-tab-item>
+      <v-tab-item id="history">
+        <v-layout row class="pt-3">
+          <v-flex xs6 class="px-2">
+            <v-menu
+              v-model="datemenu"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              lazy
+              transition="scale-transition"
+              offset-y
+              full-width
+            >
+              <template>
+                <v-text-field
+                  v-model="seldate"
+                  label="请选择日期"
+                  prepend-icon="event"
+                  readonly
+                  slot="activator"
+                ></v-text-field>
+              </template>
+              <v-date-picker v-model="seldate" @input="datechanged"></v-date-picker>
+            </v-menu>
+          </v-flex>
+          <v-flex xs6 class="px-2">
+            <v-select
+              :items="coordinators"
+              :item-text="coorlabel"
+              return-object
+              label="选择协调器"
+              v-model="selcoor"
+              @change="coorchanged"
+            ></v-select>
+          </v-flex>
+        </v-layout>
+
+        <template v-for="(data, index) in historyData">
+          <v-card class="my-2"  v-bind:key="index">          
+            <v-list dense class="px-3 py-2">
+              <v-subheader>{{data.receivedAt}}</v-subheader>
+              <v-list-tile>
+                <v-list-tile-content>
+                  <v-list-tile-title>倾角测量仪1 {{data.tilt1_Addr}}</v-list-tile-title>
+                  <v-list-tile-sub-title class="caption">
+                    X轴: {{`${data.tilt1_X_Positive > 0? '+' : '-'}${data.tilt1_X_Degree}°${data.tilt1_X_Minute}'${data.tilt1_X_Second}"`}} 
+                    Y轴: {{`${data.tilt1_Y_Positive > 0? '+' : '-'}${data.tilt1_Y_Degree}°${data.tilt1_Y_Minute}'${data.tilt1_Y_Second}"`}} 
+                  </v-list-tile-sub-title>
+                </v-list-tile-content>
+              </v-list-tile>
+              <v-divider></v-divider>
+              <!-- <v-list-tile>
+                <v-list-tile-content>
+                  <v-list-tile-title>倾角测量仪2 {{data.tilt2_Addr}}</v-list-tile-title>
+                  <v-list-tile-sub-title class="caption">
+                    X轴: {{`${data.tilt2_X_Positive > 0? '+' : '-'}${data.tilt2_X_Degree}°${data.tilt2_X_Minute}'${data.tilt2_X_Second}"`}} 
+                    Y轴: {{`${data.tilt2_Y_Positive > 0? '+' : '-'}${data.tilt2_Y_Degree}°${data.tilt2_Y_Minute}'${data.tilt2_Y_Second}"`}} 
+                  </v-list-tile-sub-title>
+                </v-list-tile-content>
+              </v-list-tile>
+              <v-divider></v-divider>
+              <v-list-tile>
+                <v-list-tile-content>
+                  <v-list-tile-title>倾角测量仪3 {{data.tilt3_Addr}}</v-list-tile-title>
+                  <v-list-tile-sub-title class="caption">
+                    X轴: {{`${data.tilt3_X_Positive > 0? '+' : '-'}${data.tilt3_X_Degree}°${data.tilt3_X_Minute}'${data.tilt3_X_Second}"`}} 
+                    Y轴: {{`${data.tilt3_Y_Positive > 0? '+' : '-'}${data.tilt3_Y_Degree}°${data.tilt3_Y_Minute}'${data.tilt3_Y_Second}"`}} 
+                  </v-list-tile-sub-title>
+                </v-list-tile-content>
+              </v-list-tile>
+              <v-divider></v-divider>
+              <v-list-tile>
+                <v-list-tile-content>
+                  <v-list-tile-title>倾角测量仪4 {{data.tilt4_Addr}}</v-list-tile-title>
+                  <v-list-tile-sub-title class="caption">
+                    X轴: {{`${data.tilt4_X_Positive > 0? '+' : '-'}${data.tilt4_X_Degree}°${data.tilt4_X_Minute}'${data.tilt4_X_Second}"`}} 
+                    Y轴: {{`${data.tilt4_Y_Positive > 0? '+' : '-'}${data.tilt4_Y_Degree}°${data.tilt4_Y_Minute}'${data.tilt4_Y_Second}"`}} 
+                  </v-list-tile-sub-title>
+                </v-list-tile-content>
+              </v-list-tile>   -->
+            </v-list>          
+          </v-card>
+        </template>
+
+        <v-btn absolute icon class="upbtn" color="primary" @click="uptop">
+          <v-icon>arrow_upward</v-icon>
+        </v-btn>
+      </v-tab-item>
       <v-tab-item id="chart">
+        <v-layout row class="pt-3">
+          <v-flex xs6 class="px-2">
+            <v-menu
+              v-model="startdatemenu"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              lazy
+              transition="scale-transition"
+              offset-y
+              full-width
+            >
+              <template>
+                <v-text-field
+                  v-model="selstartdate"
+                  label="开始日期"
+                  prepend-icon="event"
+                  readonly
+                  slot="activator"
+                ></v-text-field>
+              </template>
+              <v-date-picker v-model="selstartdate" @input="startdatemenu = false"></v-date-picker>
+            </v-menu>
+          </v-flex>
+          <v-flex xs6 class="px-2">
+            <v-menu
+              v-model="enddatemenu"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              lazy
+              transition="scale-transition"
+              offset-y
+              full-width
+            >
+              <template>
+                <v-text-field
+                  v-model="selenddate"
+                  label="结束日期"
+                  prepend-icon="event"
+                  readonly
+                  slot="activator"
+                ></v-text-field>
+              </template>
+              <v-date-picker v-model="selenddate" @input="enddatemenu = false"></v-date-picker>
+            </v-menu>
+          </v-flex>
+        </v-layout>
+        <v-layout row class="pb-2" justify-end>          
+          <v-flex xs4 class="px-2">
+            <v-btn small @click="refreshChartData">更新数据</v-btn>
+          </v-flex>
+        </v-layout>
+
         <v-card class="pa-2">
-          <div height="250px" max-width="90vw">
-            <line-chart :chart-data="stationDatas"></line-chart>
+            <!-- <line-chart :chart-data="stationDatas" :options="chartOption"></line-chart> -->
+          <div class="chart-container" style="position: relative; height:350px; width:90vw">
+            <canvas id="dataChart"></canvas>
           </div>
         </v-card>
       </v-tab-item>
       <v-tab-item id="comments">
         <v-card v-if="!error" class="mb-2">
           <v-list three-line dense>
+            <v-list-tile>
+              <v-list-tile-content>
+                <v-textarea small name="commentArea" label="增加备注" auto-grow v-model="newComment" class="caption"></v-textarea>
+              </v-list-tile-content>
+              <v-list-tile-action>
+                <v-btn small fab dark color="indigo" @click="addComment">
+                  <v-icon dark>add</v-icon>
+                </v-btn>
+              </v-list-tile-action>
+            </v-list-tile>
+
             <v-subheader>
                 备注记录
-            </v-subheader>
-            <template v-for="(comment, index) in station.comments">
+            </v-subheader>            
+            <template v-for="(comment, index) in comments">
               <v-divider
                 :key="index"
               ></v-divider>
@@ -145,43 +317,39 @@
               >
                 <v-list-tile-content>
                   <v-list-tile-title><v-icon small>speaker_notes</v-icon>&nbsp;{{comment.comment}}</v-list-tile-title>
-                  <v-list-tile-sub-title>{{comment.user}}</v-list-tile-sub-title>
+                  <v-list-tile-sub-title class="caption">{{comment.commentAt}}</v-list-tile-sub-title>
                 </v-list-tile-content>
               </v-list-tile>
             </template>
-            <v-divider></v-divider>
-            <v-list-tile>
-                <v-list-tile-content>
-                  <v-textarea name="commentArea" label="增加备注" auto-grow v-model="newComment"></v-textarea>
-                </v-list-tile-content>
-                <v-list-tile-action>
-                  <v-btn small fab dark color="indigo" @click="addComment">
-                    <v-icon dark>add</v-icon>
-                  </v-btn>
-                </v-list-tile-action>
-              </v-list-tile>
           </v-list>
         </v-card>
       </v-tab-item>
     </v-tabs-items>
 
     <v-card v-if="error" height="100%">
-        <v-card-title primary-title>
-          <div>
-            <h3 class="headline mb-0">
-              <v-icon large color="red darken-2">error_outline</v-icon>
-              {{error}}
-            </h3>
-          </div>
-        </v-card-title>
-        <v-card-text>{{this.$t("playerDetail.errorAction")}}</v-card-text>
-      </v-card>
+      <v-card-title primary-title>
+        <div>
+          <h3 class="headline mb-0">
+            <v-icon large color="red darken-2">error_outline</v-icon>
+            {{error}}
+          </h3>
+        </div>
+      </v-card-title>
+      <v-card-text>{{this.$t("playerDetail.errorAction")}}</v-card-text>
+    </v-card>
     
+    <edit-station :show-edit-dialog="showEditDialog"
+          :station="station"
+          v-on:save="onEditStationSave" v-on:cancel="onEditStationCancel">
+    </edit-station> 
+
   </v-container>
 </template>
 
 <script>
-import LineChart from '../components/LineChart.vue';
+import Chart from 'chart.js';
+import api from '../modules/api.js';
+import EditStation from '../components/EditStation.vue';
 
 export default {
   name: "StationDetail",
@@ -190,33 +358,52 @@ export default {
     return {
       error: null,
       newComment: null,
-      tabs: null,
+      comments: [],
+      seltab: 'basic',
+      coordinators: [],
+      historyData: [],
+      dataChart: null,
+      chartOption: {
+        responsive: true, 
+        hover: { mode: 'nearest', intersect: true },
+        showLine: false, 
+        spanGaps: true, 
+        steppedLine: true,
+        scales: {
+          xAxes: [{display: true, scaleLabel: {display: true, labelString: '日期' }}], 
+          yAxes: [{display: true, scaleLabel: {display: true, labelString: '倾角(度)'}}]
+        }
+      },
       stationDatas: {
-        labels: ['10-1', '10-5', '10-8', '10-15', '10-20'],
+        labels: [],
         datasets: [{
-            label: '垂直度偏差', 
-            backgroundColor: '#42A5F5',
-            borderColor: '#42A5F5',
-            data: [5, 7, 8, 10, 2],
-            fill: false
-          }, {
-            label: '水平角度 X轴', 
+            label: '倾角 X轴(度)', 
             backgroundColor: '#4DD0E1',
             borderColor: '#4DD0E1',
-            data: [12, 6, 8, 11, 10],
+            data: [],
             fill: false
           }, {
-            label: '水平角度 Y轴', 
+            label: '倾角 Y轴(度)', 
             backgroundColor: '#CDDC39',
             borderColor: '#CDDC39',
-            data: [5, 6, 2, 3, 1],
+            data: [],
             fill: false
           }]          
-      }
+      },
+      datemenu: false,
+      seldate: null,
+      selcoor: null,
+      showEditDialog: false,
+      startdatemenu: false,
+      enddatemenu: false,
+      selstartdate: null,
+      selenddate: null
     };
   },
   components: {
-    LineChart
+    EditStation
+  },
+  watch: {
   },
   computed: {
   },
@@ -225,7 +412,23 @@ export default {
       this.$router.go(-1);
     },    
     gotoMap() {
-
+      if (this.station.lng && this.station.lat) {
+        this.$router.push({
+          name: "stations",
+          params: { displayStationId: this.station.id }
+        });
+      } else {
+        this.$utils.toast(`这个基站还没有设置地理位置`);
+      }
+    },
+    refresh() {
+      if (this.seltab === 'basic') {
+        this.loadCoordinators();
+      } else if (this.seltab === 'history') {
+        this.loadDataByDate();
+      } else if (this.seltab === 'comments') {
+        this.loadComments();
+      }      
     },
     gotoWarns() {
       this.$router.push({
@@ -234,49 +437,167 @@ export default {
       });
     },
     addComment() {
-      this.station.comments.push({
-        comment: this.newComment,
-        user: "Xiaodong"
-      });
-      this.newComment = "";
+      if (this.newComment) {
+        api.addComment(this.station.id, this.newComment)
+        .then(() => {
+          this.$utils.toast(`添加备注成功`);
+          this.newComment = null;
+          this.loadComments();
+        }).catch(err => {
+          this.$utils.toast(`添加备注出错: ${err.message}`);
+        })
+      }
     },
-    retrieveSessionDetail(machineNumber, sessionStartAt) {
-      this.error = null;
-      this.$utils.showLoading();
-      this.$http
-        .get(`/api/floor-info/${machineNumber}?sessionStart=${sessionStartAt}`)
+    loadCoordinators() {
+      api.getStationCoordinators(this.station.id)
+      .then(result => {
+        this.coordinators = result;
+        this.loadLatestData();
+      }).catch(err => {
+        this.$utils.toast(`获取协调器信息失败: ${err.message}`);
+      })
+    },
+    loadLatestData() {
+      if (this.coordinators && this.coordinators.length > 0) {
+        for (let i = 0; i < this.coordinators.length; i++) {
+          let coor = this.coordinators[i];
+          api.getStationDataLatest(coor.stationId, coor.seqId)
+          .then(data => {
+            coor.data = data;
+            this.$set(this.coordinators, i, coor);
+          }).catch(err => {
+            this.$utils.toast(`获取最新数据失败: ${err.message}`);
+          });
+        }
+      }
+    },
+    loadDataByDate() {
+      if (this.seldate && this.selcoor) {
+        this.historyData = [];
+        this.$utils.showLoading();
+        api.getStationDataByDay(this.selcoor.stationId, this.selcoor.seqId, this.seldate)
         .then(result => {
           this.$utils.hideLoading();
-          this.session = result.data;
-          this.session.avatar =
-            this.session.playerId > 0
-              ? `/asset/player/image/${this.session.playerId}`
-              : "/assets/avatar.png";
-          this.session.actWin =
-            this.session.coinIn - this.session.coinOut - this.session.handpays;
-          this.session.averageBet = parseInt(
-            this.session.coinIn /
-              (this.session.games > 0.0 ? this.session.games : 1)
-          );
-          console.log(
-            "Session Detail is loaded: " + JSON.stringify(this.session)
-          );
-        })
-        .catch(error => {
+          this.historyData = result;
+        }).catch(err => {
           this.$utils.hideLoading();
+          this.$utils.toast(`获取历史数据出错: ${err.message}`);
+        })
+      }
+    },
+    loadComments() {
+      this.comments = [];
+      this.$utils.showLoading();
+      api.getStationComments(this.station.id)
+      .then(result => {
+        this.$utils.hideLoading();
+        this.comments = result
+      }).catch(err => {
+        this.$utils.hideLoading();
+        this.$utils.toast(`获取基站备注信息出错: ${err.message}`);
+      })
+    },
+    tabchange(value) {
+      console.log(`Tab selected: ${value}`);
+      if (this.seltab === 'comments') {
+        this.loadComments();
+      }
+    },
+    datechanged() {
+      this.datemenu = false;
+      console.log(this.seldate);
+      this.loadDataByDate();
+    },
+    coorchanged() {
+      console.log(this.selcoor);
+      this.loadDataByDate();
+    },
+    coorlabel(item) {
+      return `${item.seqId} - ${item.address}`;
+    },
+    uptop() {
+      document.body.scrollTop = 0; // For Safari
+      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+    },
+    editstation() {
+      this.showEditDialog = true;
+    },
+    onEditStationSave() {
+      this.showEditDialog = false;
+    },
+    onEditStationCancel() {
+      this.showEditDialog = false;
+    },
+    drawChartData() {
+      let cxt = document.getElementById('dataChart').getContext('2d');
+      this.dataChart = new Chart(cxt, {
+        type: 'line',
+        data: this.stationDatas,
+        options: {
+          responsive: true, 
+          maintainAspectRatio: false,
+          hover: { mode: 'nearest', intersect: true },
+          showLine: true, 
+          spanGaps: true, 
+          steppedLine: true,
+          scales: {
+            xAxes: [{display: true, scaleLabel: {display: true, labelString: '日期' }}], 
+            yAxes: [{display: true, scaleLabel: {display: true, labelString: '倾角(度)'}, ticks:{ min:0, stepSize: 20 }}]
+          } 
+        }
+      });
+    },
+    refreshChartData() {
+      this.stationDatas = {
+        labels: [],
+        datasets: [{
+            label: '倾角 X轴(度)', 
+            backgroundColor: '#4DD0E1',
+            borderColor: '#4DD0E1',
+            data: [],
+            fill: false
+          }, {
+            label: '倾角 Y轴(度)', 
+            backgroundColor: '#CDDC39',
+            borderColor: '#CDDC39',
+            data: [],
+            fill: false
+          }]          
+      };
 
-          if (error && error.response && error.response.status) {
-            if (error.response.status === 404) {
-              this.error = this.$t("playerDetail.playerLeave");
+      if (this.selstartdate && this.selenddate) {
+        if (this.coordinators && this.coordinators.length > 0) {
+          this.$utils.showLoading();
+
+          api.getStationAvgDataByDate(this.station.id, this.coordinators[0].seqId, this.selstartdate, this.selenddate)
+          .then(result => {
+            this.$utils.hideLoading();
+            if (result && result.length > 0) {
+              result.forEach(r => {
+                this.stationDatas.labels.push(r.date);
+                this.stationDatas.datasets[0].data.push(r.tilt_Avg_X);
+                this.stationDatas.datasets[1].data.push(r.tilt_Avg_Y);
+              });
             }
-          }
-        });
+            this.drawChartData();
+          }).catch(err => {
+            this.$utils.hideLoading();
+            this.$utils.toast(`获取数据失败: ${err.message}`);
+          })
+        } else {
+          this.$utils.toast(`该基站还没有协调器`);
+        }
+      } else {
+        this.$utils.toast(`请先选择开始日期及结束日期`);
+      }            
     }
   },
-  watch: {},
-  beforeMount: function() {    
+  beforeMount: function() { 
+    this.seldate = new Date().toISOString().substr(0, 10);   
   },
   activated: function() {    
+    this.seltab = 'basic';
+    this.loadCoordinators();    
   }
 };
 </script>
@@ -318,5 +639,13 @@ export default {
   left: 0;
   background-size: 17px 17px;
   background-repeat: no-repeat;
+}
+.upbtn {
+  display: block;
+  position: fixed; /* Fixed/sticky position */
+  bottom: 70px; /* Place the button at the bottom of the page */
+  right: 20px; /* Place the button 30px from the right */
+  z-index: 99; /* Make sure it does not overlap */
+  border: none; /* Remove borders */
 }
 </style>
