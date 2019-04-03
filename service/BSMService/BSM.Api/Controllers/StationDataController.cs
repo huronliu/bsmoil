@@ -59,15 +59,7 @@ namespace BSM.Api.Controllers
                         where d.StationId == stationId && d.SeqId == seqid && d.ReceivedAt >= startDay && d.ReceivedAt <= endDay
                         group d by new
                         {
-                            d.ReceivedAt.Value.Date,
-                            d.Tilt1_X_Degree,
-                            d.Tilt1_X_Minute,
-                            d.Tilt1_X_Second,
-                            d.Tilt1_X_Positive,
-                            d.Tilt1_Y_Degree,
-                            d.Tilt1_Y_Minute,
-                            d.Tilt1_Y_Second,
-                            d.Tilt1_Y_Positive
+                            d.ReceivedAt.Value.Date
                         } into g
                         select new StationAvgData {
                             StationId = stationId,

@@ -57,7 +57,8 @@ export default {
       selmenu: null,
       menus: [
         { path: '/stations', title: '基站管理' },
-        { path: '/monitor', title: '数据监控'}
+        { path: '/monitor', title: '数据监控'},
+        { path: '/users', title: '用户管理'}
       ],
       snackbar: {
         display: false,

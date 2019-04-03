@@ -4,6 +4,7 @@ import Home from './views/Home.vue';
 import Setting from './views/Setting.vue';
 import Stations from './views/Stations.vue';
 import Monitor from './views/Monitor.vue';
+import Users from './views/Users.vue';
 
 Vue.use(Router)
 
@@ -28,6 +29,11 @@ export default new Router({
       path: '/monitor',
       name: 'monitor',
       component: Monitor
+    },
+    {
+      path: '/users',
+      name: 'users',
+      component: Users
     },
     {
       path: '/about',
