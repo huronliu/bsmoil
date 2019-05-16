@@ -10,6 +10,7 @@ import Header from './components/Header';
 import EditStation from './components/EditStation';
 import EditCoordinator from './components/EditCoordinator';
 import 'material-design-icons-iconfont/dist/material-design-icons.css';
+import '@fortawesome/fontawesome-free/css/all.css';
 import utils from './modules/utils';
 import axios from 'axios';
 import storage from './modules/storage';

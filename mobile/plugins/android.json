@@ -7,13 +7,13 @@
     "files": {}
   },
   "installed_plugins": {
-    "cordova-plugin-whitelist": {
+    "cordova-plugin-geolocation": {
       "PACKAGE_NAME": "com.fly.basestation.monitor"
     },
     "cordova-plugin-nativestorage": {
       "PACKAGE_NAME": "com.fly.basestation.monitor"
     },
-    "cordova-plugin-geolocation": {
+    "cordova-plugin-whitelist": {
       "PACKAGE_NAME": "com.fly.basestation.monitor"
     }
   },

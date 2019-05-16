@@ -51,10 +51,14 @@ namespace BSM.Api.Controllers
             {
                 return BadRequest("Request Body can not be null");
             }
+            if (request.Height == null || request.Height.Value <= 0)
+            {
+                return BadRequest("塔高必须设置并且大于0");
+            }
             if (await _context.Stations.AnyAsync(
                     st => st.Name.Equals(request.Name, StringComparison.OrdinalIgnoreCase)))
             {
-                return BadRequest($"{request.Name} already existed");
+                return BadRequest($"{request.Name} 已经存在");
             }
 
             Station station = new Station();
@@ -65,6 +69,7 @@ namespace BSM.Api.Controllers
             station.Lng = request.Lng;
             station.Province = request.Province;
             station.Tag = request.Tag;
+            station.Height = request.Height.Value;
             
             station.Disabled = false;
             station.CreatedAt = DateTime.Now;
@@ -112,6 +117,10 @@ namespace BSM.Api.Controllers
             if (updated.Province != null)
             {
                 station.Province = updated.Province;
+            }
+            if (updated.Height != null)
+            {
+                station.Height = updated.Height.Value;
             }
             if (updated.Disabled.HasValue)
             {

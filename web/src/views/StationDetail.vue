@@ -74,10 +74,38 @@
                   <v-subheader>协调器{{coor.seqId}} - {{coor.address}}</v-subheader>
                   <v-list-tile>
                     <v-list-tile-content>
-                      <v-list-tile-title>倾角测量仪1 {{coor.data? coor.data.tilt1_Addr : ''}}</v-list-tile-title>
+                      <v-list-tile-title>水平倾斜角度</v-list-tile-title>
                       <v-list-tile-sub-title class="caption">
-                        X轴: {{coor.data? `${coor.data.tilt1_X_Positive > 0? '+' : '-'}${coor.data.tilt1_X_Degree}°${coor.data.tilt1_X_Minute}'${coor.data.tilt1_X_Second}"` : ''}} 
-                        Y轴: {{coor.data? `${coor.data.tilt1_Y_Positive > 0? '+' : '-'}${coor.data.tilt1_Y_Degree}°${coor.data.tilt1_Y_Minute}'${coor.data.tilt1_Y_Second}"` : ''}} 
+                        X轴: {{toNumValue(coor.data.tilt1X)}} 度
+                        Y轴: {{toNumValue(coor.data.tilt1Y)}} 度
+                      </v-list-tile-sub-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+                  <v-divider></v-divider>
+                  <v-list-tile>
+                    <v-list-tile-content>
+                      <v-list-tile-title>垂直偏移距离</v-list-tile-title>
+                      <v-list-tile-sub-title class="caption">
+                        X轴: {{toNumValue(coor.data.skewingX)}} 毫米
+                        Y轴: {{toNumValue(coor.data.skewingY)}} 毫米 
+                      </v-list-tile-sub-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+                  <v-divider></v-divider>
+                  <v-list-tile>
+                    <v-list-tile-content>
+                      <v-list-tile-title>瞬时风速</v-list-tile-title>
+                      <v-list-tile-sub-title class="caption">
+                        {{toNumValue(coor.data.speed)}} 米/秒
+                      </v-list-tile-sub-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+                  <v-divider></v-divider>
+                  <v-list-tile>
+                    <v-list-tile-content>
+                      <v-list-tile-title>环境温度</v-list-tile-title>
+                      <v-list-tile-sub-title class="caption">
+                        {{toNumValue(coor.data.temperature)}} 度
                       </v-list-tile-sub-title>
                     </v-list-tile-content>
                   </v-list-tile>
@@ -130,11 +158,11 @@
           <v-layout align-center justify-center>
             <v-flex>
               <div class="text-xs-center">
-                <v-btn color="blue-grey" dark round @click.native="gotoMap">
+                <v-btn class="primary" dark @click.native="gotoMap">
                   查看地图
                   <v-icon right dark>map</v-icon>
                 </v-btn>
-                <v-btn color="blue-grey" dark round @click.native="gotoWarns">
+                <v-btn class="primary" dark @click.native="gotoWarns">
                   查看报警记录
                   <v-icon right dark>warning</v-icon>
                 </v-btn>          
@@ -183,12 +211,41 @@
           <v-card class="my-2"  v-bind:key="index">          
             <v-list dense class="px-3 py-2">
               <v-subheader>{{data.receivedAt}}</v-subheader>
+              
               <v-list-tile>
                 <v-list-tile-content>
-                  <v-list-tile-title>倾角测量仪1 {{data.tilt1_Addr}}</v-list-tile-title>
+                  <v-list-tile-title>水平倾斜角度</v-list-tile-title>
                   <v-list-tile-sub-title class="caption">
-                    X轴: {{`${data.tilt1_X_Positive > 0? '+' : '-'}${data.tilt1_X_Degree}°${data.tilt1_X_Minute}'${data.tilt1_X_Second}"`}} 
-                    Y轴: {{`${data.tilt1_Y_Positive > 0? '+' : '-'}${data.tilt1_Y_Degree}°${data.tilt1_Y_Minute}'${data.tilt1_Y_Second}"`}} 
+                    X轴: {{toNumValue(data.tilt1X)}} 度
+                    Y轴: {{toNumValue(data.tilt1Y)}} 度
+                  </v-list-tile-sub-title>
+                </v-list-tile-content>
+              </v-list-tile>
+              <v-divider></v-divider>
+              <v-list-tile>
+                <v-list-tile-content>
+                  <v-list-tile-title>垂直偏移距离</v-list-tile-title>
+                  <v-list-tile-sub-title class="caption">
+                    X轴: {{toNumValue(data.skewingX)}} 毫米
+                    Y轴: {{toNumValue(data.skewingY)}} 毫米 
+                  </v-list-tile-sub-title>
+                </v-list-tile-content>
+              </v-list-tile>
+              <v-divider></v-divider>
+              <v-list-tile>
+                <v-list-tile-content>
+                  <v-list-tile-title>瞬时风速</v-list-tile-title>
+                  <v-list-tile-sub-title class="caption">
+                    {{toNumValue(data.speed)}} 米/秒
+                  </v-list-tile-sub-title>
+                </v-list-tile-content>
+              </v-list-tile>
+              <v-divider></v-divider>
+              <v-list-tile>
+                <v-list-tile-content>
+                  <v-list-tile-title>环境温度</v-list-tile-title>
+                  <v-list-tile-sub-title class="caption">
+                    {{toNumValue(data.temperature)}} 度
                   </v-list-tile-sub-title>
                 </v-list-tile-content>
               </v-list-tile>
@@ -590,6 +647,12 @@ export default {
       } else {
         this.$utils.toast(`请先选择开始日期及结束日期`);
       }            
+    },
+    toNumValue(v) {
+      if (v && v != null && v != undefined) {
+        return v.toFixed(3);
+      }
+      return '';
     }
   },
   beforeMount: function() { 

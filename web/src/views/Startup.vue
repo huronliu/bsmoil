@@ -33,16 +33,16 @@ export default {
       this.baseUrl = process.env.BASE_URL;
     } else {
       if (window.$isAndroid) {
-        this.baseUrl = '/android_asset/www';
+        this.baseUrl = '/android_asset/www/';
       } else {
-        this.baseUrl = "";
+        this.baseUrl = "/";
       }
     }
     
     this.items = [
-        { src: this.baseUrl + '/images/start1.jpg' },
-        { src: this.baseUrl + '/images/start2.jpg' },
-        { src: this.baseUrl + '/images/start3.jpg' }
+        { src: this.baseUrl + 'images/start1.jpg' },
+        { src: this.baseUrl + 'images/start2.jpg' },
+        { src: this.baseUrl + 'images/start3.jpg' }
     ];
     console.log(JSON.stringify(this.items));
   },

@@ -23,6 +23,8 @@ namespace BSM.Common.Model
 
         public string Province { get; set; }
 
+        public float Height { get; set; }
+
         public bool Disabled { get; set; }
 
         public long? CreateBy { get; set; }

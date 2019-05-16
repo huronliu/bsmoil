@@ -9,5 +9,18 @@ export default {
   },
   toast(text, timeout) {
     Vue.prototype.$bus.$emit("toast", { text, timeout });
+  },
+  getBaseUrl() {
+    var baseurl = "/";
+    if (process.env.BASE_URL) {
+      baseurl = process.env.BASE_URL;
+    } else {
+      if (window.$isAndroid) {
+        baseurl = '/android_asset/www/';
+      } else {
+        baseurl = "/";
+      }
+    }
+    return baseurl;
   }
 }

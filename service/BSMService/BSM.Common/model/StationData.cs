@@ -17,7 +17,24 @@ namespace BSM.Common.Model
         [Required]
         public int SeqId { get; set; }
 
-        public byte[] Data { get; set; }
+        public float? Tilt1X { get; set; } //单位度
+        public float? Tilt1Y { get; set; } //单位度
+        public float? Tilt2X { get; set; }
+        public float? Tilt2Y { get; set; }
+        public float? Tilt3X { get; set; }
+        public float? Tilt3Y { get; set; }
+        public float? Tilt4X { get; set; }
+        public float? Tilt4Y { get; set; }
+        public float? Speed { get; set; } //单位 米/秒
+        public float? Temperature { get; set; } //单位 度
+        public float? Rain { get; set; }
+        public double? SkewingX { get; set; } //单位毫米
+        public double? SkewingY { get; set; } //单位毫米
+        public float? Water { get; set; }
+        public float? Move1 { get; set; }
+        public float? Move2 { get; set; }
+        public float? Move3 { get; set; }
+        public float? Move4 { get; set; }
 
         public string Tilt1_Addr { get; set; }
         public byte? Tilt1_X_Positive { get; set; }

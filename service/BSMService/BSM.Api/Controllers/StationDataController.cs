@@ -65,8 +65,12 @@ namespace BSM.Api.Controllers
                             StationId = stationId,
                             SeqId = seqid.Value,
                             Date = g.Key.Date.ToString("yyyy-MM-dd"),
-                            Tilt_Avg_X = g.Average(sd => (float)(sd.Tilt1_X_Degree + (float)sd.Tilt1_X_Minute / 60 + (float)sd.Tilt1_X_Second / 3600)),
-                            Tilt_Avg_Y = g.Average(sd => (float)(sd.Tilt1_Y_Degree + (float)sd.Tilt1_Y_Minute / 60 + (float)sd.Tilt1_Y_Second / 3600))
+                            Tilt_Avg_X = g.Average(sd => sd.Tilt1X.HasValue? sd.Tilt1X.Value : 0),
+                            Tilt_Avg_Y = g.Average(sd => sd.Tilt1Y.HasValue? sd.Tilt1Y.Value : 0),
+                            Skewing_Avg_X = g.Average(sd => sd.SkewingX.HasValue? sd.SkewingX.Value : 0),
+                            Skewing_Avg_Y = g.Average(sd => sd.SkewingY.HasValue? sd.SkewingY.Value : 0),
+                            Speed_Avg = g.Average(sd => sd.Speed.HasValue? sd.Speed.Value : 0),
+                            Temperature_Avg = g.Average(sd => sd.Temperature.HasValue? sd.Temperature.Value : 0)
                         };
 
             return query.ToList();

@@ -22,6 +22,7 @@
           <template slot="items" slot-scope="props">
             <td>{{ props.item.name }}</td>
             <td class="text-xs-right">{{ props.item.tag }}</td>
+            <td class="text-xs-right">{{ props.item.height }}</td>
             <td class="text-xs-right">{{ props.item.city }}</td>
             <td class="text-xs-right">{{ props.item.province }}</td>
             <td class="text-xs-right">{{ props.item.disabled }}</td>
@@ -92,6 +93,20 @@
                     name="st_tag"
                     label="标注"
                     class="caption"
+                  ></v-text-field>
+                </v-flex>
+              </v-layout>
+            </v-list-tile>            
+            <v-list-tile class="mx-3 mt-4">
+              <v-layout>
+                <v-flex xs12>
+                  <v-text-field
+                    v-model="station.height"
+                    type="number"
+                    name="st_height"
+                    label="塔高"
+                    class="caption"
+                    :rules="[rules.required]"
                   ></v-text-field>
                 </v-flex>
               </v-layout>
@@ -282,6 +297,7 @@ export default {
       headers: [
         {text: '名称', value: 'name'} , 
         {text: '标注', value: 'tag', align: 'right'},
+        {text: '塔高', value: 'height', align: 'right'},
         {text: '城市', value: 'city', align: 'right'},
         {text: '省', value: 'province', align: 'right'},
         {text: '禁用', value: 'disabled', align: 'right'}, 

@@ -139,9 +139,7 @@
                   class="stationItem"
                 >
                   <v-list-tile-avatar>
-                    <v-avatar class="red" v-if="st.warns > 0" small size="20">
-                      <span class="white--text font-weight-thin caption">{{st.warns}}</span>  
-                    </v-avatar>
+                      <v-icon small>fas fa-broadcast-tower</v-icon>
                   </v-list-tile-avatar>
                   
                   <v-list-tile-content>
@@ -160,12 +158,12 @@
                     </v-btn>
                   </v-list-tile-action>                     
                 </v-list-tile>
-                <v-divider v-if="index + 1 < stations.length" :key="`divider-${index}`"></v-divider>
+                <v-divider v-if="index + 1 < stations.length" :key="`divider-${index}`" class="mx-2"></v-divider>
               </template>  
             </v-list>
         </v-flex>
         <v-flex xs12>
-          <v-layout v-show="hasMoreData" justify-center>
+          <v-layout v-if="hasMoreData" justify-center>
             <v-btn small flat block color="white" v-on:click="showMore()">
               <v-icon medium color="indigo">expand_more</v-icon>
             </v-btn>

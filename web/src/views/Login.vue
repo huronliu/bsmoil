@@ -1,37 +1,37 @@
 <template>
-  <v-container fluid>
-    <v-card class="mx-2 my-3">
-      <v-card-title primary-title>
-        <v-toolbar flat class="transparent">
-          <v-toolbar-title>欢迎登录</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn icon @click="gosetting">
-            <v-icon>settings</v-icon>
-          </v-btn>        
-        </v-toolbar>
-      </v-card-title>
-      <v-card-text>
-        <v-form ref="loginform">
-          <v-list>
-            <v-list-tile class="my-3">
-              <v-text-field label="用户名" type="text" v-model="username" :rules="[rules.required]"></v-text-field>
-            </v-list-tile>
-            <v-list-tile class="my-3">
-              <v-text-field label="密码" type="password" v-model="password" :rules="[rules.required]"></v-text-field>
-            </v-list-tile>
-            <v-list-tile class="my-3">
-              <v-checkbox v-model="rememberme" label="记住我的密码"></v-checkbox>
-            </v-list-tile>
-          </v-list>
-        </v-form>        
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" @click="login">
-          登录
+  <v-container align-start style="background-color:#4A87D3; min-height:100vh;" class="pa-2 ma-0">
+    <v-layout justify-end>
+      <v-flex xs2>
+        <v-btn icon @click="gosetting" dark>
+          <v-icon dark>settings</v-icon>
         </v-btn>
-      </v-card-actions>
-    </v-card>
+      </v-flex>
+    </v-layout>
+    <v-layout justify-center>
+      <v-flex xs8>
+        <v-img :src="loginimg"></v-img>
+      </v-flex>
+    </v-layout>
+    
+    <v-form ref="loginform">
+      <v-layout justify-center wrap class="px-4">
+        <v-flex xs12>
+          <v-text-field dark label="用户名" type="text" prepend-inner-icon="perm_identity" v-model="username" :rules="[rules.required]" single-line></v-text-field>
+        </v-flex>
+        <v-flex xs12>
+          <v-text-field dark label="密码" type="password" prepend-inner-icon="lock_open" v-model="password" :rules="[rules.required]" single-line></v-text-field>
+        </v-flex>
+        <v-flex xs12>
+          <v-checkbox dark v-model="rememberme" label="记住我的密码"></v-checkbox>
+        </v-flex>
+        <v-flex xs12>
+          <v-btn color="grey lighten-4" @click="login" block>
+            登录
+          </v-btn>
+        </v-flex>
+      </v-layout>              
+    </v-form>        
+    
   </v-container>
 </template>
 
@@ -49,6 +49,13 @@ export default {
       rememberme: true,
       rules: {
         required: value => !!value || "必填"
+      }      
+    }
+  },
+  computed: {
+    loginimg: {
+      get() {
+        return this.$utils.getBaseUrl() + "images/mmexport1547008523796.jpg";
       }
     }
   },
@@ -89,6 +96,8 @@ export default {
     } else {
       this.password = null;
     }
+  },
+  mounted() {
   }
 }
 </script>

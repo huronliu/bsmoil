@@ -7,22 +7,19 @@
         </v-btn>
       </template>
     </mobile-header>
-    <v-card class="mt-2">
-      <v-card-text>
-        <v-list>
-          <v-list-tile class="my-3">
-            <v-text-field label="服务器地址" type="text" v-model="apiurl" :rules="[rules.required]"></v-text-field>
-          </v-list-tile>
-        </v-list>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="gray darken-1" flat @click="goBack">取消</v-btn>
-        <v-btn color="primary" @click="save">
+    <v-layout justify-center wrap class="pa-2">
+      <v-flex xs12 class="my-3 py-2">
+        <v-text-field label="服务器地址" type="text" v-model="apiurl" :rules="[rules.required]"></v-text-field>
+      </v-flex>
+      <v-flex xs6 class="px-2">
+        <v-btn class="grey lighten-3" flat @click="goBack" block>取消</v-btn>
+      </v-flex>
+      <v-flex xs6 class="px-2">
+        <v-btn class="primary" @click="save" block>
           保存
         </v-btn>
-      </v-card-actions>
-    </v-card>
+      </v-flex>
+    </v-layout>
   </v-container>
 </template>
 <script>

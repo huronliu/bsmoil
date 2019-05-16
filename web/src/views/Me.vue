@@ -1,5 +1,9 @@
 <template>
-  <v-container style="padding: 0" align-start>
+  <v-container style="padding: 0" fluid align-start>
+    <mobile-header title="我">
+      <template>
+      </template>
+    </mobile-header>
     <v-card class="mb-2">
       <v-list two-line>
         <v-list-tile avatar>

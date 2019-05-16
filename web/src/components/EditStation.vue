@@ -31,6 +31,15 @@
           <v-list two-line subheader dense>
             <v-list-tile class="filter_toolbar_item">
               <v-list-tile-action>
+                <v-text-field v-model="station.height"
+                  label="基站塔高"
+                ></v-text-field>
+              </v-list-tile-action>
+            </v-list-tile>
+          </v-list>
+          <v-list two-line subheader dense>
+            <v-list-tile class="filter_toolbar_item">
+              <v-list-tile-action>
                 <v-select 
                   v-model="station.province"
                   label="省"
@@ -211,7 +220,7 @@ export default {
           this.$emit('save', this.station);
         }).catch(err => {
           this.$utils.hideLoading();
-          this.$utils.toast(`保存基站信息出错: ${err.message}`);
+          this.$utils.toast(`保存基站信息出错: ${err.response.data}`);
         });
       } else {
         this.$utils.showLoading();
@@ -221,7 +230,7 @@ export default {
           this.$emit('save', this.station);
         }).catch(err => {
           this.$utils.hideLoading();
-          this.$utils.toast(`保存基站信息出错: ${err.message}`);
+          this.$utils.toast(`保存基站信息出错: ${err.response.data}`);
         });
       }      
     },
@@ -233,7 +242,7 @@ export default {
       api.getCitiesList().then(result => {
         this.es_provinces = result;
       }).catch(err => {
-        this.$utils.toast(`获取城市列表出错: ${err.message}`);
+        this.$utils.toast(`获取城市列表出错: ${err.response.data}`);
       })
     },
     provincechanged(item) {

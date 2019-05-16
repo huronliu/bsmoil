@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget android-packageName="com.fly.basestation.monitor" id="com.fly.basestation.monitor" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name short="铁塔测量">铁塔测量</name>
+    <name short="基站">基站</name>
     <description>
         本APP用来检测基站的环境数据，包括倾斜角度，温湿度，消防火情等，并推送报警消息
     </description>

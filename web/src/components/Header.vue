@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar height="48" class="teal" dark app>
+  <v-toolbar height="48" class="main_color" dark app style="background-color:#4A87D3">
     <slot name="left"></slot>
     <v-toolbar-title>{{title}}</v-toolbar-title>
     <v-spacer></v-spacer>
