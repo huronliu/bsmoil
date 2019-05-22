@@ -12,8 +12,11 @@
       <v-toolbar id="stations-toolbar" dense>
         <v-text-field id="searchKey" class="ml-2" clearable v-model="searchKey"></v-text-field>        
         <v-dialog v-model="cityDialog" scrollable persistent max-width="85vw">
-          <v-btn slot="activator" icon style="font-size:18px" v-on:click="selectCity">
-            <v-icon light>location_city</v-icon>
+          <v-btn slot="activator" icon v-on:click="selectCity">
+            <!-- <v-icon light>location_city</v-icon> -->
+            <v-badge>
+              <v-img :src="city_icon" width="24px" height="24px"></v-img>
+            </v-badge>            
           </v-btn>          
           <v-card class="elevation-20 px-2">
             <v-card-text style="">
@@ -57,7 +60,10 @@
         <v-divider vertical class="mr-1"></v-divider>        
         <v-menu close-delay="500" bottom left>
           <v-btn slot="activator" icon>
-            <v-icon light class="ml-3 mr-3">{{ displayMode === 'map'? 'place' : 'format_list_bulleted' }}</v-icon>
+            <!-- <v-icon light class="ml-3 mr-3">{{ displayMode === 'map'? 'place' : 'format_list_bulleted' }}</v-icon> -->
+            <v-badge>
+              <v-img :src="displaymode_icon" width="20px" height="20px"></v-img>
+            </v-badge>            
           </v-btn>
           <v-list>
             <v-list-tile @click.native="changeDisplayMode('map')">
@@ -68,7 +74,8 @@
               </v-list-tile-action>
               <v-list-tile-title>地图模式</v-list-tile-title>
               <v-list-tile-action>
-                <v-icon>place</v-icon>
+                <!-- <v-icon>place</v-icon> -->
+                <v-img :src="map_icon" width="20px" height="20px"></v-img>
               </v-list-tile-action>
             </v-list-tile>
             <v-list-tile @click.native="changeDisplayMode('list')">
@@ -79,14 +86,18 @@
               </v-list-tile-action>
               <v-list-tile-title>列表模式</v-list-tile-title>
               <v-list-tile-action>
-                <v-icon>format_list_bulleted</v-icon>
+                <!-- <v-icon>format_list_bulleted</v-icon> -->
+                <v-img :src="list_icon" width="20px" height="20px"></v-img>
               </v-list-tile-action>
             </v-list-tile>            
           </v-list>
         </v-menu>
         <v-dialog v-model="filterMenu" persistent max-width="280px">
           <v-btn slot="activator" icon style="font-size:18px">
-            <v-icon light>filter_list</v-icon>
+            <!-- <v-icon light>filter_list</v-icon> -->
+            <v-badge>
+              <v-img :src="search_icon" width="20px" height="20px"></v-img>
+            </v-badge>
           </v-btn>
           <v-card class="elevation-20">
             <v-card-text style="height: 300px; padding: 12px 0 0 0;">
@@ -139,7 +150,10 @@
                   class="stationItem"
                 >
                   <v-list-tile-avatar>
-                      <v-icon small>fas fa-broadcast-tower</v-icon>
+                      <!-- <v-icon small>fas fa-broadcast-tower</v-icon> -->
+                      <v-badge>
+                        <v-img :src="st.icon" width="20px" height="20px"></v-img>
+                      </v-badge>                      
                   </v-list-tile-avatar>
                   
                   <v-list-tile-content>
@@ -158,7 +172,7 @@
                     </v-btn>
                   </v-list-tile-action>                     
                 </v-list-tile>
-                <v-divider v-if="index + 1 < stations.length" :key="`divider-${index}`" class="mx-2"></v-divider>
+                <v-divider :key="`divider-${index}`" class="mx-2"></v-divider>
               </template>  
             </v-list>
         </v-flex>
@@ -294,7 +308,7 @@ export default {
   },
   data() {
     return {
-      displayMode: "list", //map or list
+      displayMode: "map", //map or list
       searchKey: "",
       city: '北京',
       filter: {},
@@ -415,6 +429,31 @@ export default {
           this.city = this.curCity.name;
         }
         return `基站 - [${this.city}]`;
+      }
+    },
+    city_icon: {
+      get() {
+        return this.$utils.getImageUrl('city.png');
+      }
+    },
+    displaymode_icon: {
+      get() {
+        return this.displayMode === 'map'? this.map_icon : this.list_icon ;
+      }
+    },
+    map_icon: {
+      get() {
+        return this.$utils.getImageUrl('map.png');
+      }
+    },
+    list_icon: {
+      get() {
+        return this.$utils.getImageUrl('list.png');
+      }
+    },
+    search_icon: {
+      get() {
+        return this.$utils.getImageUrl('search.png');
       }
     }
   },
@@ -684,6 +723,9 @@ export default {
           if (result && result.length > 0) {
             var retData = result;
             this.stations = _.orderBy(retData, [], []);
+            this.stations.forEach(st => {
+              st.icon = this.$utils.getImageUrl('st_normal.png');
+            });
             this.showFirstPage();
             this.stations.forEach(st => {
               this.addStationOnMap(st);
@@ -755,8 +797,16 @@ export default {
     initCities() {
       api.getCitiesList().then(result => {
         this.provinces = result;
+        this.provinces.forEach(p => {
+          if (p.citycode === '010') {
+            this.curProvince = p;
+            this.changeProvince();
+            this.curCity = p.districtList[0];
+            this.applyCity();
+          }
+        })
       }).catch(err => {
-        this.$$utils.toast(`获取城市列表出错: ${err.message}`);
+        this.$utils.toast(`获取城市列表出错: ${err.message}`);
       });
     } 
   },

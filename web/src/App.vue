@@ -5,7 +5,7 @@
         <router-view />
       </keep-alive>
     </v-content>
-    <mobile-footer :navs="navs"  v-show="footer"></mobile-footer>
+    <mobile-footer v-show="footer"></mobile-footer>
     <v-dialog v-model="loading" hide-overlay persistent fullscreen>
       <v-card height="92" min-height="92" class="loading">
         <v-card-text class="loading-progress">
@@ -40,10 +40,7 @@ export default {
         timeout: 5000
       },
       allNavs: [
-        { title: "基站", to: { path: "/stations" }, icon: "list_alt", flags: 0, roleFlag: 1 },
-        { title: "报警", to: { path: "/warns" }, icon: "notification_important", flags: 0, roleFlag: 1 },
-        { title: "配置", to: { path: "/config" }, icon: "settings", flags: 0, roleFlag: 1 },
-        { title: "我", to: { path: "/me" }, icon: "account_box", flags: 0, roleFlag: 1 }
+        
       ]
     };
   },
@@ -51,27 +48,7 @@ export default {
     footer: function() {
       const to = this.$route;
       return _.isNil(to.meta) || _.isNil(to.meta.footer) || to.meta.footer;
-    },
-    navs: {
-      get() {
-        var result = [];
-        //var user = this.$store.state.session.user;
-        //if (!user) return result;
-        this.allNavs.forEach(nav => {
-          // if (user.admin) {
-          //   if (nav.roleFlag & 2) {
-          //     result.push(nav);
-          //   }
-          // } else {
-          //   if (nav.roleFlag & 1) {
-          //     result.push(nav);
-          //   }
-          // }
-          result.push(nav);
-        });
-        return result;
-      }
-    }
+    }   
   },
   created: function() {
     this.$bus.$on("show-loading", () => {

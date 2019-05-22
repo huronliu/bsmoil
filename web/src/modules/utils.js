@@ -22,5 +22,8 @@ export default {
       }
     }
     return baseurl;
+  },
+  getImageUrl(image) {
+    return this.getBaseUrl() + 'images/' + image;
   }
 }

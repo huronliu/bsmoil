@@ -1,5 +1,5 @@
 <template>
-  <v-container align-start style="background-color:#4A87D3; min-height:100vh;" class="pa-2 ma-0">
+  <v-container align-center justify-center style="min-height:100vh;" class="main_color pa-2 ma-0">
     <v-layout justify-end>
       <v-flex xs2>
         <v-btn icon @click="gosetting" dark>
@@ -16,10 +16,10 @@
     <v-form ref="loginform">
       <v-layout justify-center wrap class="px-4">
         <v-flex xs12>
-          <v-text-field dark label="用户名" type="text" prepend-inner-icon="perm_identity" v-model="username" :rules="[rules.required]" single-line></v-text-field>
+          <v-text-field class="main_color" dark placeholder="用户名" type="text" prepend-inner-icon="perm_identity" v-model="username" :rules="[rules.required]" single-line></v-text-field>
         </v-flex>
         <v-flex xs12>
-          <v-text-field dark label="密码" type="password" prepend-inner-icon="lock_open" v-model="password" :rules="[rules.required]" single-line></v-text-field>
+          <v-text-field class="main_color" dark placeholder="密码" type="password" prepend-inner-icon="lock_open" v-model="password" :rules="[rules.required]" single-line></v-text-field>
         </v-flex>
         <v-flex xs12>
           <v-checkbox dark v-model="rememberme" label="记住我的密码"></v-checkbox>
