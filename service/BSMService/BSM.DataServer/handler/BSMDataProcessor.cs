@@ -62,6 +62,7 @@ namespace BSM.DataServer
 
                     sd.StationId = coordinator.StationId;
                     sd.SeqId = coordinator.SeqId;
+                    
                     float height = coordinator.Station.Height; //单位米
 
                     //第一倾角传感器

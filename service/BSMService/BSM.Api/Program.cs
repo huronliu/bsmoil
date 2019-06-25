@@ -60,6 +60,20 @@ namespace BSM.Api
 
                         Log.Information("admin user is created in system");
                     }
+
+                    var alertsetting = context.AlertSettings.FirstOrDefault();
+                    if (alertsetting == null)
+                    {
+                        alertsetting = new AlertSetting();
+                        alertsetting.TiltThreshold = null;
+                        alertsetting.SkewingThreshold = null;
+                        alertsetting.SpeedThreshold = null;
+                        alertsetting.TempThreshold = null;
+
+                        context.AlertSettings.Add(alertsetting);
+                        context.SaveChanges();
+                        Log.Information("alert settings is configured");
+                    }
                     Log.Information("Database initialized: {0}", context.DataSourceString);
                 }
 

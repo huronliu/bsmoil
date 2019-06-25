@@ -17,8 +17,17 @@ export default {
       return response.data;
     });
   },
-  getStations: function() {
-    return axios.get(`${storage.getServiceUrl()}/api/stations`, {
+  getStations: function(city, name, id) {
+    let url = `${storage.getServiceUrl()}/api/stations?`;
+    if (id) {
+      url = `${url}id=${id}`;
+    } else if (name) {
+      url = `${url}name=${name}`;
+    } else if (city) {
+      url = `${url}city=${city}`;
+    }
+
+    return axios.get(url, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',

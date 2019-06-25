@@ -693,10 +693,10 @@ export default {
     drawChartData() {
       let cxt = document.getElementById('dataChart'+this.selChart).getContext('2d');
       let label = '倾角(度)';
-      let step = 20;
+      let step = 1;
       switch(this.selChart) {
         case 1: 
-          label = '倾角(度)'; step = 20; break;
+          label = '倾角(度)'; step = 1; break;
         case 2:
           label = '距离(毫米)'; step = 100; break;
         case 3:
@@ -716,7 +716,7 @@ export default {
           steppedLine: true,
           scales: {
             xAxes: [{display: true, scaleLabel: {display: true, labelString: '日期' }}], 
-            yAxes: [{display: true, scaleLabel: {display: true, labelString: label}, ticks:{ min:0, stepSize: step }}]
+            yAxes: [{display: true, scaleLabel: {display: true, labelString: label}, ticks:{ min:0 }}]
           } 
         }
       });
@@ -731,12 +731,14 @@ export default {
               label: '倾角 X轴(度)', 
               backgroundColor: '#4DD0E1',
               borderColor: '#4DD0E1',
+              pointBorderWidth: 8,
               data: [],
               fill: false
             }, {
               label: '倾角 Y轴(度)', 
               backgroundColor: '#CDDC39',
               borderColor: '#CDDC39',
+              pointBorderWidth: 8,
               data: [],
               fill: false
             }]          
@@ -749,12 +751,14 @@ export default {
               label: '距离 X轴(毫米)', 
               backgroundColor: '#4DD0E1',
               borderColor: '#4DD0E1',
+              pointBorderWidth: 8,
               data: [],
               fill: false
             }, {
               label: '距离 Y轴(毫米)', 
               backgroundColor: '#CDDC39',
               borderColor: '#CDDC39',
+              pointBorderWidth: 8,
               data: [],
               fill: false
             }]          
@@ -767,6 +771,7 @@ export default {
               label: '风速(米/秒)', 
               backgroundColor: '#4DD0E1',
               borderColor: '#4DD0E1',
+              pointBorderWidth: 8,
               data: [],
               fill: false
             }]          
@@ -779,6 +784,7 @@ export default {
               label: '温度(度)', 
               backgroundColor: '#4DD0E1',
               borderColor: '#4DD0E1',
+              pointBorderWidth: 8,
               data: [],
               fill: false
             }]          

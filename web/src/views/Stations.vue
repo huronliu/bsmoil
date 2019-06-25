@@ -109,6 +109,7 @@
                     label="基站ID"
                     type="number"
                     maxlength="16"
+                    clearable
                   ></v-text-field>
                 </v-flex>
                 <v-flex xs12 sm12 pa-3>
@@ -116,8 +117,7 @@
                     v-model="filter.title"
                     hide-details
                     label="基站名称"
-                    type="number"
-                    maxlength="16"
+                    clearable
                   ></v-text-field>
                 </v-flex>                
               </v-layout>
@@ -473,7 +473,9 @@ export default {
         if (this.curCity.citycode) {
           this.map_autoComplete.setCity(this.curCity.citycode);
           this.map_autoComplete.setCityLimit(true);
-        }        
+        }
+        
+        this.refresh();
       }
     },        
     selectCity() { //show the select city dialog
@@ -494,6 +496,7 @@ export default {
     },
     filterApplyClick() {
       this.filterMenu = false;
+      this.loadStations();
     },
 
     //navigate to the current geo location
@@ -510,6 +513,7 @@ export default {
     //reload stations ----------------------
     refresh() {
       this.loadStations();
+      this.showFirstPage();
       window.scrollTo(0, 0);
     },
     showFirstPage() {
@@ -717,7 +721,12 @@ export default {
       
       this.stations = [];
       this.markers = [];
-      api.getStations()
+
+      api.getStations(
+        this.curCity? this.curCity.name : null, 
+        this.filter && this.filter.title? this.filter.title : null,
+        this.filter && this.filter.id? this.filter.id : null        
+        )
         .then(result => {
           this.$utils.hideLoading();
           if (result && result.length > 0) {

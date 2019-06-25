@@ -26,9 +26,23 @@ namespace BSM.Api.Controllers
 
         // GET: api/stations
         [HttpGet]
-        public ActionResult<IEnumerable<Station>> Get()
+        public ActionResult<IEnumerable<Station>> Get(string city, string name, long? id)
         {
-            return _context.Stations.ToList();
+            var query = _context.Stations.Where(st => true);
+
+            if (id.HasValue)
+            {
+                query = query.Where(st => st.Id == id);
+            }
+            else if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(st => st.Name.Contains(name));    
+            }
+            else if (!string.IsNullOrEmpty(city))
+            {
+                query = query.Where(st => st.City.Equals(city));
+            }
+            return query.ToList();            
         }
 
         // GET api/stations/{id}

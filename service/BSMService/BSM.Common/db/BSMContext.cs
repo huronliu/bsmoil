@@ -32,6 +32,8 @@ namespace BSM.Common.DB
 
         public DbSet<UserPermission> UserPermissions { get; set; }
 
+        public DbSet<AlertSetting> AlertSettings { get; set; }
+
 
         public BSMContext(string dbconnection)
         {
@@ -96,6 +98,10 @@ namespace BSM.Common.DB
 
             //Alert
             modelBuilder.Entity<Alert>()
+                .Property(a => a.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<AlertSetting>()
                 .Property(a => a.Id)
                 .ValueGeneratedOnAdd();
         }
