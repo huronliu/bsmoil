@@ -57,10 +57,10 @@
         </v-badge>
       </v-tab>
 
-      <v-tab href="#history" class="primary--text">
+      <v-tab href="#daily" class="primary--text">
         <!-- <v-icon>list_alt</v-icon> -->
         <v-badge>
-          <v-img :src="history_icon" width="20px" height="20px"></v-img>
+          <v-img :src="daily_icon" width="20px" height="20px"></v-img>
         </v-badge>
       </v-tab>
 
@@ -188,7 +188,7 @@
           </v-layout>
           </v-card>
       </v-tab-item>
-      <v-tab-item id="history">
+      <v-tab-item id="daily">
         <v-layout row class="pt-3">
           <v-flex xs6 class="px-2">
             <v-menu
@@ -223,8 +223,16 @@
             ></v-select>
           </v-flex>
         </v-layout>
+        <v-layout row >
+          <v-flex xs6 class="px-2">
+            <v-switch v-model="showDailyChart" label="显示曲线图"></v-switch>
+          </v-flex>
+          <v-flex xs6 class="px-2">
+            <v-select :items="chartOptions" item-text="text" item-value="value" v-model="selChart" v-if="showDailyChart"></v-select>
+          </v-flex>
+        </v-layout>
 
-        <template v-for="(data, index) in historyData">
+        <template v-for="(data, index) in dailyData" v-if="!showDailyChart">
           <v-card class="my-2"  v-bind:key="index">          
             <v-list dense class="px-3 py-2">
               <v-subheader>{{data.receivedAt}}</v-subheader>
@@ -299,6 +307,22 @@
             </v-list>          
           </v-card>
         </template>
+
+        <v-card class="pa-2" v-if="showDailyChart">
+            <!-- <line-chart :chart-data="stationDatas" :options="chartOption"></line-chart> -->
+          <div v-if="selChart === 1" class="chart-container" style="position: relative; height:350px; width:90vw">
+            <canvas id="dailyChart1"></canvas>
+          </div>
+          <div v-if="selChart === 2" class="chart-container" style="position: relative; height:350px; width:90vw">
+            <canvas id="dailyChart2"></canvas>
+          </div>
+          <div v-if="selChart === 3" class="chart-container" style="position: relative; height:350px; width:90vw">
+            <canvas id="dailyChart3"></canvas>
+          </div>
+          <div v-if="selChart === 4" class="chart-container" style="position: relative; height:350px; width:90vw">
+            <canvas id="dailyChart4"></canvas>
+          </div>
+        </v-card>
 
         <v-btn absolute icon class="upbtn" color="#4A87D3" @click="uptop">
           <v-icon>arrow_upward</v-icon>
@@ -462,6 +486,7 @@
 <script>
 import Chart from 'chart.js';
 import api from '../modules/api.js';
+import moment from 'moment';
 import EditStation from '../components/EditStation.vue';
 
 export default {
@@ -473,9 +498,11 @@ export default {
       newComment: null,
       comments: [],
       seltab: 'basic',
+      showDailyChart: true,
       coordinators: [],
-      historyData: [],
+      dailyData: [],
       dataChart: null,
+      dailyChart: null,
       chartOptions: [
         { text: '水平倾斜角度', value: 1 },
         { text: '垂直偏移距离', value: 2 },
@@ -510,6 +537,22 @@ export default {
             fill: false
           }]          
       },
+      dailyDatas: {
+        labels: [],
+        datasets: [{
+            label: '倾角 X轴(度)', 
+            backgroundColor: '#4DD0E1',
+            borderColor: '#4DD0E1',
+            data: [],
+            fill: false
+          }, {
+            label: '倾角 Y轴(度)', 
+            backgroundColor: '#CDDC39',
+            borderColor: '#CDDC39',
+            data: [],
+            fill: false
+          }]
+      },
       datemenu: false,
       seldate: null,
       selcoor: null,
@@ -527,8 +570,22 @@ export default {
   watch: {
     selChart: {
       handler() {
-        this.refreshChartData();
+        if (this.seltab === 'daily') {
+          this.refreshDailyChartData();
+        } else if (this.seltab === 'chart') {
+          this.refreshChartData();
+        }        
       }
+    },
+    seldate: {
+      handler() {
+        this.refresh();
+      }
+    },
+    showDailyChart: {
+      handler() {
+        this.refresh();
+      }      
     }
   },
   computed: {
@@ -537,9 +594,9 @@ export default {
         return this.seltab === 'basic'? this.$utils.getImageUrl('data.png') : this.$utils.getImageUrl('data_disabled.png') ;
       }
     },
-    history_icon: {
+    daily_icon: {
       get() {
-        return this.seltab === 'history'? this.$utils.getImageUrl('coordinator.png') : this.$utils.getImageUrl('coordinator_disabled.png');
+        return this.seltab === 'daily'? this.$utils.getImageUrl('coordinator.png') : this.$utils.getImageUrl('coordinator_disabled.png');
       }
     },
     chart_icon: {
@@ -585,10 +642,16 @@ export default {
     refresh() {
       if (this.seltab === 'basic') {
         this.loadCoordinators();
-      } else if (this.seltab === 'history') {
-        this.loadDataByDate();
+      } else if (this.seltab === 'daily') {
+        if (this.showDailyChart) {
+          this.refreshDailyChartData();
+        } else {
+          this.loadDataByDate();
+        }        
       } else if (this.seltab === 'comments') {
         this.loadComments();
+      } else if (this.seltab === 'chart') {
+        this.refreshChartData();
       }      
     },
     gotoWarns() {
@@ -614,6 +677,9 @@ export default {
       api.getStationCoordinators(this.station.id)
       .then(result => {
         this.coordinators = result;
+        if (this.coordinators && this.coordinators.length > 0) {
+          this.selcoor = this.coordinators[0];
+        }
         this.loadLatestData();
       }).catch(err => {
         this.$utils.toast(`获取协调器信息失败: ${err.message}`);
@@ -635,12 +701,12 @@ export default {
     },
     loadDataByDate() {
       if (this.seldate && this.selcoor) {
-        this.historyData = [];
+        this.dailyData = [];
         this.$utils.showLoading();
         api.getStationDataByDay(this.selcoor.stationId, this.selcoor.seqId, this.seldate)
         .then(result => {
           this.$utils.hideLoading();
-          this.historyData = result;
+          this.dailyData = result;
         }).catch(err => {
           this.$utils.hideLoading();
           this.$utils.toast(`获取历史数据出错: ${err.message}`);
@@ -721,6 +787,38 @@ export default {
         }
       });
     },
+    drawDailyChart() {
+      let cxt = document.getElementById('dailyChart'+this.selChart).getContext('2d');
+      let label = '倾角(度)';
+      let step = 1;
+      switch(this.selChart) {
+        case 1: 
+          label = '倾角(度)'; step = 1; break;
+        case 2:
+          label = '距离(毫米)'; step = 100; break;
+        case 3:
+          label = '风速(米/秒)'; step = 0.1; break;
+        case 4:
+          label = '温度(度)'; step = 5; break;
+      }
+      this.dailyChart = new Chart(cxt, {
+        type: 'line',
+        data: this.dailyDatas,
+        options: {
+          responsive: true, 
+          maintainAspectRatio: false,
+          hover: { mode: 'nearest', intersect: true },
+          showLine: true, 
+          spanGaps: true, 
+          steppedLine: true,
+          scales: {
+            xAxes: [{display: true, scaleLabel: {display: true, labelString: '时间' }}], 
+            yAxes: [{display: true, scaleLabel: {display: true, labelString: label}, ticks:{ min:0 }}]
+          } 
+        }
+      });
+    },
+
     refreshChartData() {
       this.stationDatas = null;
       switch(this.selChart) {
@@ -827,6 +925,118 @@ export default {
         this.$utils.toast(`请先选择开始日期及结束日期`);
       }            
     },
+    refreshDailyChartData() {
+      this.dailyDatas = null;
+      switch(this.selChart) {
+        case 1: 
+          this.dailyDatas = {
+          labels: [],
+          datasets: [{
+              label: '倾角 X轴(度)', 
+              backgroundColor: '#4DD0E1',
+              borderColor: '#4DD0E1',
+              pointBorderWidth: 8,
+              data: [],
+              fill: false
+            }, {
+              label: '倾角 Y轴(度)', 
+              backgroundColor: '#CDDC39',
+              borderColor: '#CDDC39',
+              pointBorderWidth: 8,
+              data: [],
+              fill: false
+            }]          
+          };
+          break;
+        case 2: 
+          this.dailyDatas = {
+          labels: [],
+          datasets: [{
+              label: '距离 X轴(毫米)', 
+              backgroundColor: '#4DD0E1',
+              borderColor: '#4DD0E1',
+              pointBorderWidth: 8,
+              data: [],
+              fill: false
+            }, {
+              label: '距离 Y轴(毫米)', 
+              backgroundColor: '#CDDC39',
+              borderColor: '#CDDC39',
+              pointBorderWidth: 8,
+              data: [],
+              fill: false
+            }]          
+          };
+          break;
+        case 3: 
+          this.dailyDatas = {
+          labels: [],
+          datasets: [{
+              label: '风速(米/秒)', 
+              backgroundColor: '#4DD0E1',
+              borderColor: '#4DD0E1',
+              pointBorderWidth: 8,
+              data: [],
+              fill: false
+            }]          
+          };
+          break;
+        case 4:
+          this.dailyDatas = {
+          labels: [],
+          datasets: [{
+              label: '温度(度)', 
+              backgroundColor: '#4DD0E1',
+              borderColor: '#4DD0E1',
+              pointBorderWidth: 8,
+              data: [],
+              fill: false
+            }]          
+          };
+          break;
+      }
+
+      if (this.seldate) {
+        if (this.selcoor) {
+          this.dailyData = [];
+          this.$utils.showLoading();
+          api.getStationDataByDay(this.selcoor.stationId, this.selcoor.seqId, this.seldate)
+          .then(result => {
+            this.$utils.hideLoading();
+            this.dailyData = result;
+            console.info(this.dailyData);
+
+            if (this.dailyData && this.dailyData.length > 0) {
+              for (let i = this.dailyData.length-1 ; i >= 0; i--) {
+                let r = this.dailyData[i];
+                console.info(r);
+                this.dailyDatas.labels.push(this.toTimeFormat(r.receivedAt));
+                if (this.selChart === 1) {
+                  this.dailyDatas.datasets[0].data.push(this.toFixedFloat(r.tilt1X, 2));
+                  this.dailyDatas.datasets[1].data.push(this.toFixedFloat(r.tilt1Y, 2));
+                } else if (this.selChart === 2) {
+                  this.dailyDatas.datasets[0].data.push(this.toFixedFloat(r.skewingX, 0));
+                  this.dailyDatas.datasets[1].data.push(this.toFixedFloat(r.skewingY, 0));
+                } else if (this.selChart === 3) {
+                  this.dailyDatas.datasets[0].data.push(this.toFixedFloat(r.speed, 2));
+                } else if (this.selChart === 4) {
+                  this.dailyDatas.datasets[0].data.push(this.toFixedFloat(r.temperature, 1));
+                }                
+              }
+            }
+            this.drawDailyChart();
+          }).catch(err => {
+            this.$utils.hideLoading();
+            this.$utils.toast(`获取历史数据出错: ${err.message}`);
+          });
+        } else {
+          this.$utils.toast(`该基站还没有协调器`);
+        }
+      } else {
+        this.$utils.toast(`请先选择日期`);
+      }
+    },
+
     toNumValue(v) {
       if (v && v != null && v != undefined) {
         return v.toFixed(3);
@@ -835,6 +1045,10 @@ export default {
     },
     toFixedFloat(v, num) {
       return parseFloat(v.toFixed(num));
+    },
+    toTimeFormat(v) {
+      let dt = moment(v);
+      return dt.format('HH:mm:ss');
     }
   },
   beforeMount: function() { 
