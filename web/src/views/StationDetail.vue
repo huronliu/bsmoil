@@ -552,7 +552,7 @@ export default {
             data: [],
             fill: false
           }]
-      },
+      }, 
       datemenu: false,
       seldate: null,
       selcoor: null,
