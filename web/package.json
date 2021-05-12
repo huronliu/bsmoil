@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
-    "chart.js": "^2.8.0",
+    "chart.js": "^2.9.4",
     "cordova": "^9.0.0",
     "jwt-decode": "^2.2.0",
     "moment": "^2.22.2",
