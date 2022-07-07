@@ -12,7 +12,7 @@
     "chart.js": "^2.8.0",
     "cordova": "^9.0.0",
     "jwt-decode": "^2.2.0",
-    "moment": "^2.22.2",
+    "moment": "^2.29.4",
     "vue": "^2.5.17",
     "vue-amap": "^0.5.8",
     "vue-router": "^3.0.2",
